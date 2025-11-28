@@ -3,6 +3,7 @@
   import type { SfOrg, OrgListResult, AddOrgMode } from "$lib/api";
   import { getAuthorizedOrgs, openOrg, addOrg } from "$lib/api";
   import Spinner from "$lib/components/Spinner.svelte";
+  import { orderBy } from "lodash-es";
 
   let orgs: SfOrg[] = [];
   let loading = true;
@@ -20,7 +21,10 @@
       const scratch = result?.result?.scratchOrgs ?? [];
       const nonScratch = result?.result?.nonScratchOrgs ?? [];
       const sandboxes = result?.result?.sandboxes ?? [];
-      orgs = [...nonScratch, ...sandboxes, ...scratch];
+      orgs = orderBy(
+        [...nonScratch, ...sandboxes, ...scratch],
+        [org => org.alias?.toLowerCase()]
+      );
     } catch (e) {
       if (e instanceof Error) error = e.message;
       else error = String(e);
