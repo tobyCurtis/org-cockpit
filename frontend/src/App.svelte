@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { SfOrg, OrgListResult, AddOrgMode } from '$lib/api';
-  import { getAuthorizedOrgs, openOrg, addOrg } from '$lib/api';
+  import { onMount } from "svelte";
+  import type { SfOrg, OrgListResult, AddOrgMode } from "$lib/api";
+  import { getAuthorizedOrgs, openOrg, addOrg } from "$lib/api";
+  import Spinner from "$lib/components/Spinner.svelte";
 
   let orgs: SfOrg[] = [];
   let loading = true;
   let adding = false;
   let addMenuOpen = false;
   let addingCustom = false;
-  let customInstanceUrl = '';
+  let customInstanceUrl = "";
   let error: string | null = null;
 
   async function loadOrgs() {
@@ -33,7 +34,7 @@
   async function handleOpen(org: SfOrg) {
     const target = org.alias || org.username;
     if (!target) {
-      error = 'Org has no alias or username to open';
+      error = "Org has no alias or username to open";
       return;
     }
 
@@ -49,7 +50,7 @@
     addMenuOpen = false;
     error = null;
 
-    if (mode === 'custom') {
+    if (mode === "custom") {
       // Show the custom URL input, but don't fire CLI yet
       addingCustom = true;
       return;
@@ -70,16 +71,16 @@
   async function handleAddCustom() {
     const url = customInstanceUrl.trim();
     if (!url) {
-      error = 'Please enter a My Domain URL';
+      error = "Please enter a My Domain URL";
       return;
     }
 
     adding = true;
     error = null;
     try {
-      await addOrg('custom', url);
+      await addOrg("custom", url);
       addingCustom = false;
-      customInstanceUrl = '';
+      customInstanceUrl = "";
       await loadOrgs();
     } catch (e) {
       if (e instanceof Error) error = e.message;
@@ -90,7 +91,7 @@
   }
 
   function formatLastUsed(value?: string): string {
-    if (!value) return '';
+    if (!value) return "";
     try {
       const d = new Date(value);
       if (isNaN(d.getTime())) return value;
@@ -101,17 +102,115 @@
   }
 
   function isDefault(org: SfOrg): boolean {
-    return org.isDefaultUsername === true || org.defaultMarker === '(U)';
+    return org.isDefaultUsername === true || org.defaultMarker === "(U)";
   }
 </script>
 
+<main>
+  <header>
+    <h1>Org Cockpit</h1>
+    <div class="controls">
+      {#if !loading}
+        <button on:click={loadOrgs}>Refresh</button>
+      {/if}
 
+      <div class="dropdown-trigger">
+        <button on:click={() => (addMenuOpen = !addMenuOpen)} disabled={adding}>
+          {#if adding}
+            Waiting for login…
+          {:else}
+            Add Org ▾
+          {/if}
+        </button>
+
+        {#if addMenuOpen}
+          <div class="dropdown-menu">
+            <button on:click={() => startAdd("production")}>Production</button>
+            <button on:click={() => startAdd("sandbox")}>Sandbox</button>
+            <button on:click={() => startAdd("custom")}>Custom…</button>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </header>
+
+  {#if addingCustom}
+    <div class="custom-input">
+      <input
+        type="text"
+        bind:value={customInstanceUrl}
+        placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
+      />
+      <button on:click={handleAddCustom} disabled={adding}>
+        Start Login
+      </button>
+      <button
+        on:click={() => {
+          addingCustom = false;
+          customInstanceUrl = "";
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  {/if}
+
+  {#if error}
+    <div class="error">Error: {error}</div>
+  {/if}
+
+  {#if loading}
+    <Spinner />
+  {:else if !loading && orgs.length === 0}
+    <p>
+      No authorized orgs found. Try running <code>sf org login web</code> in a terminal.
+    </p>
+  {:else if orgs.length > 0}
+    <ul>
+      {#each orgs as org}
+        <li>
+          <div class="line-main">
+            <span class="alias">{org.alias || org.username}</span>
+            <span class="instance">{org.instanceUrl}</span>
+            <div class="badges">
+              {#if isDefault(org)}
+                <span class="badge default">Default</span>
+              {/if}
+              {#if org.isDevHub}
+                <span class="badge devhub">Dev Hub</span>
+              {/if}
+            </div>
+            <button on:click={() => handleOpen(org)}>Open</button>
+          </div>
+          <div class="line-meta">
+            <span class="meta">
+              {#if org.connectedStatus}
+                Status: {org.connectedStatus}
+              {/if}
+            </span>
+            <span class="meta">
+              {#if org.lastUsed}
+                Last used: {formatLastUsed(org.lastUsed)}
+              {/if}
+            </span>
+          </div>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+</main>
 
 <style>
   main {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
     padding: 1.5rem;
     height: 100vh;
+    width: 80vw;
   }
 
   header {
@@ -172,6 +271,7 @@
     display: flex;
     gap: 0.25rem;
     font-size: 0.7rem;
+    margin-left: auto;
   }
 
   .badge {
@@ -221,7 +321,7 @@
     right: 0;
     background: #fff;
     border: 1px solid rgba(0, 0, 0, 0.15);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     border-radius: 4px;
     padding: 0.25rem 0;
     z-index: 10;
@@ -254,94 +354,3 @@
     font-size: 0.85rem;
   }
 </style>
-
-
-
-<main>
-  <header>
-    <h1>Salesforce Org Cockpit</h1>
-    <div class="controls">
-      {#if loading}
-        <span>Loading…</span>
-      {:else}
-        <button on:click={loadOrgs}>Refresh</button>
-      {/if}
-
-      <div class="dropdown-trigger">
-        <button on:click={() => (addMenuOpen = !addMenuOpen)} disabled={adding}>
-          {#if adding}
-            Waiting for login…
-          {:else}
-            Add Org ▾
-          {/if}
-        </button>
-
-        {#if addMenuOpen}
-          <div class="dropdown-menu">
-            <button on:click={() => startAdd('production')}>Production</button>
-            <button on:click={() => startAdd('sandbox')}>Sandbox</button>
-            <button on:click={() => startAdd('custom')}>Custom…</button>
-          </div>
-        {/if}
-      </div>
-    </div>
-  </header>
-
-  {#if addingCustom}
-    <div class="custom-input">
-      <input
-        type="text"
-        bind:value={customInstanceUrl}
-        placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
-      />
-      <button on:click={handleAddCustom} disabled={adding}>
-        Start Login
-      </button>
-      <button on:click={() => { addingCustom = false; customInstanceUrl = ''; }}>
-        Cancel
-      </button>
-    </div>
-  {/if}
-
-
-
-  {#if error}
-    <div class="error">Error: {error}</div>
-  {/if}
-
-  {#if !loading && orgs.length === 0}
-    <p>No authorized orgs found. Try running <code>sf org login web</code> in a terminal.</p>
-  {:else if orgs.length > 0}
-    <ul>
-      {#each orgs as org}
-        <li>
-          <div class="line-main">
-            <span class="alias">{org.alias || org.username}</span>
-            <span class="instance">{org.instanceUrl}</span>
-            <div class="badges">
-              {#if isDefault(org)}
-                <span class="badge default">Default</span>
-              {/if}
-              {#if org.isDevHub}
-                <span class="badge devhub">Dev Hub</span>
-              {/if}
-            </div>
-            <button on:click={() => handleOpen(org)}>Open</button>
-          </div>
-          <div class="line-meta">
-            <span class="meta">
-              {#if org.connectedStatus}
-                Status: {org.connectedStatus}
-              {/if}
-            </span>
-            <span class="meta">
-              {#if org.lastUsed}
-                Last used: {formatLastUsed(org.lastUsed)}
-              {/if}
-            </span>
-          </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-</main>

@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { execFile } = require('child_process');
 
-console.log('🔥 RUNNING UPDATED MAIN.JS');
+console.log('RUNNING UPDATED MAIN.JS');
 
 const fs = require("fs");
 const os = require("os");
@@ -24,9 +24,9 @@ function findSfBinary() {
 }
 
 const SF_BIN = findSfBinary();
-console.log("🔍 Using sf binary:", SF_BIN);
+console.log("Using sf binary:", SF_BIN);
 
-// 🧠 Make sure sf's directory (and thus node) is on PATH
+// Make sure sf's directory (and thus node) is on PATH
 if (SF_BIN && SF_BIN !== "sf") {
   const sfDir = path.dirname(SF_BIN);
   const currentPath = process.env.PATH || "";
@@ -35,64 +35,6 @@ if (SF_BIN && SF_BIN !== "sf") {
 }
 
 const isDev = process.env.NODE_ENV === 'DEV';
-
-// --------------------------------------------------
-// Helper: parse Salesforce CLI JSON robustly
-// --------------------------------------------------
-function parseSfJson(stdout) {
-  if (!stdout) {
-    throw new Error('No output from sf command');
-  }
-
-  const raw = stdout.toString();
-
-  console.log('---------- RAW SF STDOUT (stringified) ----------');
-  console.log(JSON.stringify(raw));
-  console.log('-------------------------------------------------');
-
-  const firstBrace = raw.indexOf('{');
-  const lastBrace = raw.lastIndexOf('}');
-
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
-    throw new Error('Could not locate JSON braces in sf output');
-  }
-
-  // Slice between first { and last }
-  let candidate = raw.slice(firstBrace, lastBrace + 1).trim();
-
-  // 1) Try straightforward parse
-  try {
-    console.log('Attempting direct JSON.parse on candidate substring...');
-    return JSON.parse(candidate);
-  } catch (e) {
-    console.log('Direct JSON.parse failed, will try fallbacks:', e.message);
-  }
-
-  // 2) Fallback: trim from the right until JSON.parse works
-  for (let end = candidate.length; end > 0; end--) {
-    const text = candidate.slice(0, end).trim();
-    if (!text) continue;
-    try {
-      console.log(`Trying trimmed substring length=${end}...`);
-      return JSON.parse(text);
-    } catch {
-      // keep trimming
-    }
-  }
-
-  // 3) Fallback: quoted JSON string case: "\"{...}\""
-  if (candidate[0] === '"' && candidate[candidate.length - 1] === '"') {
-    try {
-      console.log('Trying double-parse for quoted JSON string...');
-      const inner = JSON.parse(candidate);     // remove outer quotes
-      return JSON.parse(inner);                // parse inner JSON
-    } catch (e) {
-      console.log('Double-parse fallback failed:', e.message);
-    }
-  }
-
-  throw new Error('Could not parse JSON from sf output');
-}
 
 // --------------------------------------------------
 // IPC: org actions
@@ -105,12 +47,7 @@ ipcMain.handle('get-orgs', async () => {
       SF_BIN,
       ['org', 'list', '--json', '--loglevel', 'fatal'],
       (err, stdout, stderr) => {
-        console.log('========== EXEC sf org list --json --loglevel fatal ==========');
-        console.log('STDERR:');
-        console.log(stderr);
-        console.log('STDOUT (raw):');
-        console.log(stdout);
-        console.log('===============================================================');
+        console.log('slice: ', stdout.slice(0, 10));
 
         if (err) {
           console.error('Error running sf org list:', stderr || err);
@@ -137,9 +74,6 @@ ipcMain.handle('get-orgs', async () => {
           // Strip other control chars
           candidate = candidate.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
-          console.log('JSON substring after cleaning:');
-          console.log(candidate);
-
           const result = JSON.parse(candidate);
           resolve(result);
         } catch (parseErr) {
@@ -165,13 +99,6 @@ ipcMain.handle('open-org', async (_event, target) => {
       SF_BIN,
       ['org', 'open', '--target-org', target],
       (err, stdout, stderr) => {
-        console.log('========== EXEC sf org open ==========');
-        console.log('STDERR:');
-        console.log(stderr);
-        console.log('STDOUT:');
-        console.log(stdout);
-        console.log('======================================');
-
         if (err) {
           console.error('Error running sf org open:', stderr || err);
           reject(stderr || err.message || 'Failed to open org');
@@ -216,13 +143,6 @@ ipcMain.handle('add-org', async (_event, options) => {
     console.log('Running command:', SF_BIN, args.join(' '));
 
     execFile(SF_BIN, args, (err, stdout, stderr) => {
-      console.log('========== EXEC sf org login web ==========');
-      console.log('STDERR:');
-      console.log(stderr);
-      console.log('STDOUT:');
-      console.log(stdout);
-      console.log('============================================');
-
       if (err) {
         console.error('Error running sf org login web:', stderr || err);
         reject(stderr || err.message || 'Failed to start org login');
@@ -250,8 +170,6 @@ function loadDevServer(win) {
   });
 }
 
-
-
 // --------------------------------------------------
 // Window creation
 // --------------------------------------------------
@@ -259,17 +177,18 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 900,
     height: 700,
+    minWidth: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
 
   if (isDev) {
-    console.log('🚀 DEV MODE: loading Vite dev server');
+    console.log('DEV MODE: loading Vite dev server');
     loadDevServer(win);
     win.webContents.openDevTools();
   } else {
-    console.log('📦 PROD MODE: loading built frontend');
+    console.log('PROD MODE: loading built frontend');
     win.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
   }
 }
