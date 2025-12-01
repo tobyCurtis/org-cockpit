@@ -19,6 +19,43 @@
   let scratchOrgs: SfOrg[] = [];
   let ungroupedOrgs: SfOrg[] = [];
 
+  let searchTerm = "";
+
+  function matchesSearch(org: SfOrg, term: string): boolean {
+    if (!term) return true;
+    const q = term.toLowerCase();
+
+    const alias = org.alias?.toLowerCase() || "";
+    const instance = org.instanceUrl?.toLowerCase() || "";
+
+    return alias.includes(q) || instance.includes(q);
+  }
+
+  $: trimmedSearch = searchTerm.trim().toLowerCase();
+
+  // Reactive filtered versions of the groups
+  $: filteredGroupedOrgs = !trimmedSearch
+    ? groupedOrgs
+    : groupedOrgs
+        .map((group) => {
+          const prodOrgs = group.prodOrgs.filter((o) =>
+            matchesSearch(o, trimmedSearch),
+          );
+          const sandboxOrgs = group.sandboxOrgs.filter((o) =>
+            matchesSearch(o, trimmedSearch),
+          );
+          return { ...group, prodOrgs, sandboxOrgs };
+        })
+        .filter((g) => g.prodOrgs.length || g.sandboxOrgs.length);
+
+  $: filteredScratchOrgs = !trimmedSearch
+    ? scratchOrgs
+    : scratchOrgs.filter((o) => matchesSearch(o, trimmedSearch));
+
+  $: filteredUngroupedOrgs = !trimmedSearch
+    ? ungroupedOrgs
+    : ungroupedOrgs.filter((o) => matchesSearch(o, trimmedSearch));
+
   // accordion expansion state keyed by namespace
   let expandedNamespaces: Record<string, boolean> = {};
 
@@ -311,13 +348,25 @@
       No authorized orgs found. Try running <code>sf org login web</code> in a terminal.
     </p>
   {:else}
-    {#if groupedOrgs.length > 0}
-      <div class="accordion-toolbar">
-        <button id="expand-all" on:click={expandAll}>Expand all</button>
-        <button on:click={collapseAll}>Collapse all</button>
-      </div>
+    <!-- Toolbar: search on left, buttons on right -->
+    <div class="accordion-toolbar">
+      <input
+        type="text"
+        class="org-search"
+        placeholder="Filter orgs by alias or domain..."
+        bind:value={searchTerm}
+      />
 
-      {#each groupedOrgs as group}
+      {#if groupedOrgs.length > 0}
+        <div class="accordion-toolbar-buttons">
+          <button on:click={expandAll}>Expand all</button>
+          <button on:click={collapseAll}>Collapse all</button>
+        </div>
+      {/if}
+    </div>
+
+    {#if filteredGroupedOrgs.length > 0}
+      {#each filteredGroupedOrgs as group}
         <OrgAccordion
           namespace={group.namespace}
           prodOrgs={group.prodOrgs}
@@ -330,10 +379,10 @@
       {/each}
     {/if}
 
-    {#if scratchOrgs.length > 0}
+    {#if filteredScratchOrgs.length > 0}
       <h2>Scratch orgs</h2>
       <ul>
-        {#each scratchOrgs as org}
+        {#each filteredScratchOrgs as org}
           <li>
             <div class="line-main">
               <span class="alias">{org.alias || org.username}</span>
@@ -366,10 +415,10 @@
       </ul>
     {/if}
 
-    {#if ungroupedOrgs.length > 0}
+    {#if filteredUngroupedOrgs.length > 0}
       <h2>Other orgs</h2>
       <ul>
-        {#each ungroupedOrgs as org}
+        {#each filteredUngroupedOrgs as org}
           <li>
             <div class="line-main">
               <span class="alias">{org.alias || org.username}</span>
@@ -400,6 +449,45 @@
         {/each}
       </ul>
     {/if}
+
+    {#if trimmedSearch && filteredGroupedOrgs.length === 0 && filteredScratchOrgs.length === 0 && filteredUngroupedOrgs.length === 0}
+      <p>No orgs match your search.</p>
+    {/if}
+  {/if}
+
+  {#if ungroupedOrgs.length > 0}
+    <h2>Other orgs</h2>
+    <ul>
+      {#each ungroupedOrgs as org}
+        <li>
+          <div class="line-main">
+            <span class="alias">{org.alias || org.username}</span>
+            <span class="instance">{org.instanceUrl}</span>
+            <div class="badges">
+              {#if isDefault(org)}
+                <span class="badge default">Default</span>
+              {/if}
+              {#if org.isDevHub}
+                <span class="badge devhub">Dev Hub</span>
+              {/if}
+            </div>
+            <button on:click={() => handleOpen(org)}>Open</button>
+          </div>
+          <div class="line-meta">
+            <span class="meta">
+              {#if org.connectedStatus}
+                Status: {org.connectedStatus}
+              {/if}
+            </span>
+            <span class="meta">
+              {#if org.lastUsed}
+                Last used: {formatLastUsed(org.lastUsed)}
+              {/if}
+            </span>
+          </div>
+        </li>
+      {/each}
+    </ul>
   {/if}
 </main>
 
@@ -551,5 +639,34 @@
 
   .dropdown-menu button:hover {
     background: rgba(0, 0, 0, 0.05);
+  }
+
+  .accordion-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .org-search {
+    flex: 0 0 260px;
+    max-width: 280px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    background: #fff;
+  }
+
+  .org-search:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #1b96ff;
+    border-color: #1b96ff;
+  }
+
+  .accordion-toolbar-buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
   }
 </style>

@@ -1,9 +1,9 @@
 # Outstanding Tasks
 - Hover state on rows
-- Live search
 - Hotkeys?
 
 # Done
+- Live search
 - Alias an org
 - Grouping for your orgs
     - By my domain perhaps, to separate the environments
