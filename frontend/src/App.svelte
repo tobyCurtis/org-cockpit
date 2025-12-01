@@ -39,10 +39,10 @@
     : groupedOrgs
         .map((group) => {
           const prodOrgs = group.prodOrgs.filter((o) =>
-            matchesSearch(o, trimmedSearch),
+            matchesSearch(o, trimmedSearch)
           );
           const sandboxOrgs = group.sandboxOrgs.filter((o) =>
-            matchesSearch(o, trimmedSearch),
+            matchesSearch(o, trimmedSearch)
           );
           return { ...group, prodOrgs, sandboxOrgs };
         })
@@ -83,6 +83,21 @@
     }
   }
 
+  function isSandboxOrg(org: SfOrg): boolean {
+    const instanceUrl = org.instanceUrl;
+    if (!instanceUrl) return false;
+
+    try {
+      const url = new URL(instanceUrl);
+      const host = url.hostname;
+      const beforeSalesforce = host.split("salesforce.com")[0];
+
+      return beforeSalesforce.includes("--");
+    } catch {
+      return false;
+    }
+  }
+
   async function loadOrgs() {
     loading = true;
     error = null;
@@ -91,12 +106,11 @@
       const result: OrgListResult = await getAuthorizedOrgs();
       const scratch = result?.result?.scratchOrgs ?? [];
       const nonScratch = result?.result?.nonScratchOrgs ?? [];
-      const sandboxes = result?.result?.sandboxes ?? [];
 
       // optional: keep a flat list if you still want it
       orgs = orderBy(
-        [...nonScratch, ...sandboxes, ...scratch],
-        [(org) => org.alias?.toLowerCase() || org.username.toLowerCase()],
+        [...nonScratch, ...scratch],
+        [(org) => org.alias?.toLowerCase() || org.username.toLowerCase()]
       );
 
       const groupMap = new Map<string, OrgGroup>();
@@ -123,9 +137,10 @@
         }
       }
 
-      // nonScratch = "production-ish" (non-sandbox) orgs
-      for (const org of nonScratch) addToGroup(org, false);
-      for (const org of sandboxes) addToGroup(org, true);
+      // ✅ classify each nonScratch org by My Domain pattern
+      for (const org of nonScratch) {
+        addToGroup(org, isSandboxOrg(org));
+      }
 
       groupedOrgs = Array.from(groupMap.values())
         .map((group) => ({
@@ -645,7 +660,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
   }
 
   .org-search {
@@ -656,6 +671,7 @@
     border-radius: 4px;
     border: 1px solid rgba(0, 0, 0, 0.25);
     background: #fff;
+    color: #666;
   }
 
   .org-search:focus {
