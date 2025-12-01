@@ -4,6 +4,7 @@ declare global {
   }
 }
 
+
 export interface SfOrg {
   alias?: string;
   username: string;
@@ -36,6 +37,10 @@ export async function openOrg(target: string): Promise<void> {
   await window.electron.ipcRenderer.invoke('open-org', target);
 }
 
-export async function addOrg(mode: AddOrgMode, instanceUrl?: string): Promise<void> {
-  await window.electron.ipcRenderer.invoke('add-org', { mode, instanceUrl });
+export async function addOrg(
+  mode: AddOrgMode,
+  instanceUrl?: string,
+  alias?: string
+): Promise<void> {
+  await window.electron.ipcRenderer.invoke('add-org', { mode, instanceUrl, alias });
 }

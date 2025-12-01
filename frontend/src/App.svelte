@@ -2,35 +2,149 @@
   import { onMount } from "svelte";
   import type { SfOrg, OrgListResult, AddOrgMode } from "$lib/api";
   import { getAuthorizedOrgs, openOrg, addOrg } from "$lib/api";
+  import AddOrgInputRow from "$lib/components/AddOrgInputRow.svelte";
+  import OrgAccordion from "$lib/components/OrgAccordion.svelte";
   import Spinner from "$lib/components/Spinner.svelte";
   import { orderBy } from "lodash-es";
 
   let orgs: SfOrg[] = [];
+
+  type OrgGroup = {
+    namespace: string;
+    prodOrgs: SfOrg[];
+    sandboxOrgs: SfOrg[];
+  };
+
+  let groupedOrgs: OrgGroup[] = [];
+  let scratchOrgs: SfOrg[] = [];
+  let ungroupedOrgs: SfOrg[] = [];
+
+  // accordion expansion state keyed by namespace
+  let expandedNamespaces: Record<string, boolean> = {};
+
   let loading = true;
-  let adding = false;
-  let addMenuOpen = false;
-  let addingCustom = false;
-  let customInstanceUrl = "";
+  let adding = false; // CLI is running
+  let addMenuOpen = false; // Add Org dropdown
+  let addMode: AddOrgMode | null = null; // 'production' | 'sandbox' | 'custom' | null
+  let aliasInput = ""; // alias for new org
+  let customInstanceUrl = ""; // My Domain / instance URL (for custom)
   let error: string | null = null;
+
+  function getNamespace(instanceUrl?: string): string | null {
+    if (!instanceUrl) return null;
+
+    try {
+      const url = new URL(instanceUrl);
+      const host = url.hostname; // e.g. cms1.my.salesforce.com or cms1--full.sandbox.my.salesforce.com
+
+      const firstPart = host.split(".")[0]; // cms1 or cms1--full
+      const ns = firstPart.split("--")[0]; // cms1
+      return ns || null;
+    } catch {
+      // in case instanceUrl is something unexpected
+      return null;
+    }
+  }
 
   async function loadOrgs() {
     loading = true;
     error = null;
+
     try {
       const result: OrgListResult = await getAuthorizedOrgs();
       const scratch = result?.result?.scratchOrgs ?? [];
       const nonScratch = result?.result?.nonScratchOrgs ?? [];
       const sandboxes = result?.result?.sandboxes ?? [];
+
+      // optional: keep a flat list if you still want it
       orgs = orderBy(
         [...nonScratch, ...sandboxes, ...scratch],
-        [org => org.alias?.toLowerCase()]
+        [(org) => org.alias?.toLowerCase() || org.username.toLowerCase()],
       );
+
+      const groupMap = new Map<string, OrgGroup>();
+      const ungrouped: SfOrg[] = [];
+
+      function addToGroup(org: SfOrg, isSandbox: boolean) {
+        const ns = getNamespace(org.instanceUrl);
+
+        if (!ns) {
+          ungrouped.push(org);
+          return;
+        }
+
+        let group = groupMap.get(ns);
+        if (!group) {
+          group = { namespace: ns, prodOrgs: [], sandboxOrgs: [] };
+          groupMap.set(ns, group);
+        }
+
+        if (isSandbox) {
+          group.sandboxOrgs.push(org);
+        } else {
+          group.prodOrgs.push(org);
+        }
+      }
+
+      // nonScratch = "production-ish" (non-sandbox) orgs
+      for (const org of nonScratch) addToGroup(org, false);
+      for (const org of sandboxes) addToGroup(org, true);
+
+      groupedOrgs = Array.from(groupMap.values())
+        .map((group) => ({
+          ...group,
+          prodOrgs: orderBy(group.prodOrgs, [
+            (o) => o.alias?.toLowerCase() || o.username.toLowerCase(),
+          ]),
+          sandboxOrgs: orderBy(group.sandboxOrgs, [
+            (o) => o.alias?.toLowerCase() || o.username.toLowerCase(),
+          ]),
+        }))
+        .sort((a, b) => a.namespace.localeCompare(b.namespace));
+
+      scratchOrgs = orderBy(scratch, [
+        (o) => o.alias?.toLowerCase() || o.username.toLowerCase(),
+      ]);
+
+      ungroupedOrgs = orderBy(ungrouped, [
+        (o) => o.alias?.toLowerCase() || o.username.toLowerCase(),
+      ]);
+
+      // reset accordion expansion state (collapsed by default)
+      const nextExpanded: Record<string, boolean> = {};
+      for (const g of groupedOrgs) {
+        nextExpanded[g.namespace] = false;
+      }
+      expandedNamespaces = nextExpanded;
     } catch (e) {
       if (e instanceof Error) error = e.message;
       else error = String(e);
     } finally {
       loading = false;
     }
+  }
+
+  function toggleNamespace(ns: string) {
+    expandedNamespaces = {
+      ...expandedNamespaces,
+      [ns]: !expandedNamespaces[ns],
+    };
+  }
+
+  function expandAll() {
+    const next: Record<string, boolean> = {};
+    for (const g of groupedOrgs) {
+      next[g.namespace] = true;
+    }
+    expandedNamespaces = next;
+  }
+
+  function collapseAll() {
+    const next: Record<string, boolean> = {};
+    for (const g of groupedOrgs) {
+      next[g.namespace] = false;
+    }
+    expandedNamespaces = next;
   }
 
   onMount(loadOrgs);
@@ -50,41 +164,56 @@
     }
   }
 
-  async function startAdd(mode: AddOrgMode) {
+  function startAdd(mode: AddOrgMode) {
     addMenuOpen = false;
     error = null;
 
-    if (mode === "custom") {
-      // Show the custom URL input, but don't fire CLI yet
-      addingCustom = true;
-      return;
-    }
-
-    adding = true;
-    try {
-      await addOrg(mode);
-      await loadOrgs();
-    } catch (e) {
-      if (e instanceof Error) error = e.message;
-      else error = String(e);
-    } finally {
-      adding = false;
-    }
+    // Show the appropriate input UI; don't call the CLI yet.
+    addMode = mode;
+    aliasInput = "";
+    customInstanceUrl = "";
   }
 
-  async function handleAddCustom() {
-    const url = customInstanceUrl.trim();
-    if (!url) {
-      error = "Please enter a My Domain URL";
-      return;
+  function resetAddState() {
+    addMode = null;
+    aliasInput = "";
+    customInstanceUrl = "";
+  }
+
+  function cancelAdd() {
+    // Just close the inline input(s) and clear fields
+    resetAddState();
+    adding = false;
+  }
+
+  async function handleStartLogin() {
+    if (!addMode) return;
+
+    error = null;
+
+    // For custom orgs, URL is required
+    if (addMode === "custom") {
+      const url = customInstanceUrl.trim();
+      if (!url) {
+        error = "Please enter a My Domain URL";
+        return;
+      }
     }
 
     adding = true;
-    error = null;
+
     try {
-      await addOrg("custom", url);
-      addingCustom = false;
-      customInstanceUrl = "";
+      if (addMode === "custom") {
+        const url = customInstanceUrl.trim();
+        const alias = aliasInput.trim() || undefined;
+        await addOrg("custom", url, alias);
+      } else {
+        // production / sandbox
+        const alias = aliasInput.trim() || undefined;
+        await addOrg(addMode, undefined, alias);
+      }
+
+      resetAddState();
       await loadOrgs();
     } catch (e) {
       if (e instanceof Error) error = e.message;
@@ -138,69 +267,139 @@
     </div>
   </header>
 
-  {#if addingCustom}
-    <div class="custom-input">
-      <input
-        type="text"
+  {#if addMode}
+    {#if addMode === "custom"}
+      <!-- Custom org: alias row (full width, no buttons) -->
+      <AddOrgInputRow
+        bind:value={aliasInput}
+        placeholder="Alias (optional, e.g. cms-custom)"
+        showButtons={false}
+      />
+      <!-- Custom org: URL row with Start/Cancel buttons -->
+      <AddOrgInputRow
         bind:value={customInstanceUrl}
         placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
+        showButtons={true}
+        primaryLabel="Start Login"
+        secondaryLabel="Cancel"
+        primaryDisabled={adding}
+        on:primary={handleStartLogin}
+        on:secondary={cancelAdd}
       />
-      <button on:click={handleAddCustom} disabled={adding}>
-        Start Login
-      </button>
-      <button
-        on:click={() => {
-          addingCustom = false;
-          customInstanceUrl = "";
-        }}
-      >
-        Cancel
-      </button>
-    </div>
+    {:else}
+      <!-- Production / Sandbox: single row for alias + Start / Cancel -->
+      <AddOrgInputRow
+        bind:value={aliasInput}
+        placeholder="Alias (optional, e.g. cms-prod)"
+        showButtons={true}
+        primaryLabel="Start Login"
+        secondaryLabel="Cancel"
+        primaryDisabled={adding}
+        on:primary={handleStartLogin}
+        on:secondary={cancelAdd}
+      />
+    {/if}
   {/if}
 
   {#if error}
     <div class="error">Error: {error}</div>
   {/if}
-
   {#if loading}
     <Spinner />
-  {:else if !loading && orgs.length === 0}
+  {:else if !loading && groupedOrgs.length === 0 && scratchOrgs.length === 0 && ungroupedOrgs.length === 0}
     <p>
       No authorized orgs found. Try running <code>sf org login web</code> in a terminal.
     </p>
-  {:else if orgs.length > 0}
-    <ul>
-      {#each orgs as org}
-        <li>
-          <div class="line-main">
-            <span class="alias">{org.alias || org.username}</span>
-            <span class="instance">{org.instanceUrl}</span>
-            <div class="badges">
-              {#if isDefault(org)}
-                <span class="badge default">Default</span>
-              {/if}
-              {#if org.isDevHub}
-                <span class="badge devhub">Dev Hub</span>
-              {/if}
-            </div>
-            <button on:click={() => handleOpen(org)}>Open</button>
-          </div>
-          <div class="line-meta">
-            <span class="meta">
-              {#if org.connectedStatus}
-                Status: {org.connectedStatus}
-              {/if}
-            </span>
-            <span class="meta">
-              {#if org.lastUsed}
-                Last used: {formatLastUsed(org.lastUsed)}
-              {/if}
-            </span>
-          </div>
-        </li>
+  {:else}
+    {#if groupedOrgs.length > 0}
+      <div class="accordion-toolbar">
+        <button id="expand-all" on:click={expandAll}>Expand all</button>
+        <button on:click={collapseAll}>Collapse all</button>
+      </div>
+
+      {#each groupedOrgs as group}
+        <OrgAccordion
+          namespace={group.namespace}
+          prodOrgs={group.prodOrgs}
+          sandboxOrgs={group.sandboxOrgs}
+          expanded={!!expandedNamespaces[group.namespace]}
+          on:toggle={() => toggleNamespace(group.namespace)}
+          on:open={(event) => handleOpen(event.detail.org)}
+          isDefaultFn={isDefault}
+        />
       {/each}
-    </ul>
+    {/if}
+
+    {#if scratchOrgs.length > 0}
+      <h2>Scratch orgs</h2>
+      <ul>
+        {#each scratchOrgs as org}
+          <li>
+            <div class="line-main">
+              <span class="alias">{org.alias || org.username}</span>
+              <span class="instance">{org.instanceUrl}</span>
+              <div class="badges">
+                {#if isDefault(org)}
+                  <span class="badge default">Default</span>
+                {/if}
+                <span class="badge scratch">Scratch</span>
+                {#if org.isDevHub}
+                  <span class="badge devhub">Dev Hub</span>
+                {/if}
+              </div>
+              <button on:click={() => handleOpen(org)}>Open</button>
+            </div>
+            <div class="line-meta">
+              <span class="meta">
+                {#if org.connectedStatus}
+                  Status: {org.connectedStatus}
+                {/if}
+              </span>
+              <span class="meta">
+                {#if org.lastUsed}
+                  Last used: {formatLastUsed(org.lastUsed)}
+                {/if}
+              </span>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
+    {#if ungroupedOrgs.length > 0}
+      <h2>Other orgs</h2>
+      <ul>
+        {#each ungroupedOrgs as org}
+          <li>
+            <div class="line-main">
+              <span class="alias">{org.alias || org.username}</span>
+              <span class="instance">{org.instanceUrl}</span>
+              <div class="badges">
+                {#if isDefault(org)}
+                  <span class="badge default">Default</span>
+                {/if}
+                {#if org.isDevHub}
+                  <span class="badge devhub">Dev Hub</span>
+                {/if}
+              </div>
+              <button on:click={() => handleOpen(org)}>Open</button>
+            </div>
+            <div class="line-meta">
+              <span class="meta">
+                {#if org.connectedStatus}
+                  Status: {org.connectedStatus}
+                {/if}
+              </span>
+              <span class="meta">
+                {#if org.lastUsed}
+                  Last used: {formatLastUsed(org.lastUsed)}
+                {/if}
+              </span>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   {/if}
 </main>
 
@@ -222,6 +421,15 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+  }
+
+  .accordion-toolbar {
+    display: flex;
+    margin-bottom: 0.5em;
+  }
+
+  .accordion-toolbar #expand-all {
+    margin-left: auto;
   }
 
   h1 {
@@ -343,18 +551,5 @@
 
   .dropdown-menu button:hover {
     background: rgba(0, 0, 0, 0.05);
-  }
-
-  .custom-input {
-    margin: 0.5rem 0 1rem;
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .custom-input input {
-    flex: 1;
-    padding: 0.25rem 0.4rem;
-    font-size: 0.85rem;
   }
 </style>

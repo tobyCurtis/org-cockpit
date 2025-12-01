@@ -119,10 +119,25 @@ ipcMain.handle('add-org', async (_event, options) => {
   return new Promise((resolve, reject) => {
     const mode = options?.mode || 'production';
     let instanceUrl = options?.instanceUrl?.trim();
+    let alias = options?.alias?.trim();
 
-    console.log('Starting sf org login web, mode:', mode, 'instanceUrl:', instanceUrl, 'via', SF_BIN);
-
+    console.log(
+      'Starting sf org login web, mode:',
+      mode,
+      'instanceUrl:',
+      instanceUrl,
+      'alias:',
+      alias,
+      'via',
+      SF_BIN
+    );
+    
     const args = ['org', 'login', 'web'];
+
+    // If alias provided, use it
+    if (alias) {
+      args.push('--alias', alias);
+    }
 
     if (mode === 'sandbox') {
       args.push('--instance-url', 'https://test.salesforce.com');
@@ -149,10 +164,13 @@ ipcMain.handle('add-org', async (_event, options) => {
         return;
       }
 
-      resolve(true);
+      console.log('sf org login web completed successfully');
+      resolve({ success: true });
     });
   });
 });
+
+
 
 // --------------------------------------------------
 // Dev server loader with retry
