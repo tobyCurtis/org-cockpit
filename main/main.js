@@ -229,28 +229,27 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: "Org Cockpit",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
+  // Prevent the page from changing the title
+  win.on("page-title-updated", (event) => {
+    event.preventDefault();
+    win.setTitle("Org Cockpit");
+  });
+
   if (isDev) {
-    // DEV: hit the Vite dev server
-    const devUrl = "http://localhost:5173/"; // adjust if your Vite port is different
-    win.loadURL(devUrl);
+    win.loadURL("http://localhost:5173/");
     win.webContents.openDevTools({ mode: "detach" });
   } else {
-    // PROD: load built index.html from frontend/dist
-    const indexPath = path.join(
-      __dirname,
-      "..",
-      "frontend",
-      "dist",
-      "index.html"
-    );
+    const indexPath = path.join(__dirname, "..", "frontend", "dist", "index.html");
     win.loadFile(indexPath);
   }
 }
+
 
 // --------------------------------------------------
 // App lifecycle
