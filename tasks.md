@@ -1,4 +1,6 @@
 # Outstanding Tasks
+- Componentize
+- Delete orgs
 - Hover state on rows
 - Hotkeys?
 

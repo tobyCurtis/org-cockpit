@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { SfOrg } from "$lib/api";
+  import OrgRow from "$lib/components/OrgRow.svelte";
 
   export let namespace: string;
   export let prodOrgs: SfOrg[] = [];
@@ -53,82 +54,32 @@
       {#if prodOrgs.length}
         <div class="section-label">Production</div>
         {#each prodOrgs as org}
-          <div class="org-row">
-            <div class="line-main">
-              <span class="alias">{org.alias || org.username}</span>
-              <span class="instance">{org.instanceUrl}</span>
-              <div class="badges">
-                {#if isDefaultFn && isDefaultFn(org)}
-                  <span class="badge default">Default</span>
-                {/if}
-                {#if org.isDevHub}
-                  <span class="badge devhub">Dev Hub</span>
-                {/if}
-              </div>
-              <button on:click={() => openOrg(org)}>Open</button>
-            </div>
-            <div class="line-meta">
-              <span class="meta status-meta">
-                {#if org.connectedStatus}
-                  <span
-                    class="status-dot {org.connectedStatus === 'Connected'
-                      ? 'ok'
-                      : 'bad'}"
-                  ></span>
-                  {org.connectedStatus}
-                {/if}
-              </span>
-              <span class="meta">
-                {#if org.lastUsed}
-                  Last used: {formatLastUsed(org.lastUsed)}
-                {/if}
-              </span>
-            </div>
-          </div>
+          <OrgRow
+            {org}
+            {isDefaultFn}
+            variant="prod"
+            showStatusDot={true}
+            on:open={(event) => openOrg(event.detail.org)}
+          />
         {/each}
       {/if}
 
       {#if sandboxOrgs.length}
         <div class="section-label">Sandboxes</div>
         {#each sandboxOrgs as org}
-          <div class="org-row">
-            <div class="line-main">
-              <span class="alias">{org.alias || org.username}</span>
-              <span class="instance">{org.instanceUrl}</span>
-              <div class="badges">
-                <span class="badge sandbox">Sandbox</span>
-                {#if isDefaultFn && isDefaultFn(org)}
-                  <span class="badge default">Default</span>
-                {/if}
-                {#if org.isDevHub}
-                  <span class="badge devhub">Dev Hub</span>
-                {/if}
-              </div>
-              <button on:click={() => openOrg(org)}>Open</button>
-            </div>
-            <div class="line-meta">
-              <span class="meta status-meta">
-                {#if org.connectedStatus}
-                  <span
-                    class="status-dot {org.connectedStatus === 'Connected'
-                      ? 'ok'
-                      : 'bad'}"
-                  ></span>
-                  {org.connectedStatus}
-                {/if}
-              </span>
-              <span class="meta">
-                {#if org.lastUsed}
-                  Last used: {formatLastUsed(org.lastUsed)}
-                {/if}
-              </span>
-            </div>
-          </div>
+          <OrgRow
+            {org}
+            {isDefaultFn}
+            variant="sandbox"
+            showStatusDot={true}
+            on:open={(event) => openOrg(event.detail.org)}
+          />
         {/each}
       {/if}
     </div>
   {/if}
 </section>
+
 <style>
   .accordion {
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -282,7 +233,7 @@
     height: 0.55rem;
     flex-shrink: 0;
     border-radius: 50%;
-    align-self: center;   /* centers vertically next to multi-line text */
+    align-self: center; /* centers vertically next to multi-line text */
   }
 
   .status-dot.ok {
