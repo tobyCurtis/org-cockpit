@@ -1,11 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
 
-  // Two-way bound text value
   export let value = "";
   export let placeholder = "";
-
-  // Whether to show Start/Cancel buttons
   export let showButtons = true;
   export let primaryLabel = "Start Login";
   export let secondaryLabel = "Cancel";

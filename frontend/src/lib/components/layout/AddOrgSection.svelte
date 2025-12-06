@@ -24,14 +24,12 @@
 
 {#if addMode}
   {#if addMode === "custom"}
-    <!-- Custom org: alias row (full width, no buttons) -->
     <AddOrgInputRow
       bind:value={aliasInput}
       placeholder="Alias (optional, e.g. cms-custom)"
       showButtons={false}
     />
 
-    <!-- Custom org: URL row with Start/Cancel buttons -->
     <AddOrgInputRow
       bind:value={customInstanceUrl}
       placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
@@ -43,7 +41,6 @@
       on:secondary={handleCancel}
     />
   {:else}
-    <!-- Production / Sandbox: single row for alias + Start / Cancel -->
     <AddOrgInputRow
       bind:value={aliasInput}
       placeholder="Alias (optional, e.g. cms-prod)"

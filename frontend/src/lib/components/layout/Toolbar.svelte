@@ -6,10 +6,7 @@
     collapseall: void;
   }>();
 
-  // Search text, owned by parent via bind:
   export let searchTerm: string;
-
-  // Simple boolean from parent: do we have any groups?
   export let hasGroupedOrgs: boolean;
 
   function handleExpandAll() {

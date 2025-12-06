@@ -4,9 +4,7 @@
 
   export let org: SfOrg;
   export let isDefaultFn: ((org: SfOrg) => boolean) | undefined;
-  // Which kind of org this is, for badges
   export let variant: "prod" | "sandbox" | "scratch" = "prod";
-  // Whether to show the colored status dot or just plain text
   export let showStatusDot: boolean = true;
 
   const dispatch = createEventDispatcher<{
@@ -79,14 +77,6 @@
 </div>
 
 <style>
-
-    
-  .org-row + .org-row {
-    margin-top: 0.35rem;
-    padding-top: 0.35rem;
-    border-top: 1px dashed rgba(0, 0, 0, 0.04);
-  }
-
   .line-main {
     display: flex;
     align-items: center;
