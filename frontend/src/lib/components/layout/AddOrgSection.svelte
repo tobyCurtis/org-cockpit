@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import AddOrgInputRow from "$lib/components/AddOrgInputRow.svelte";
+  import AddOrgInputRow from "$lib/components/orgs/AddOrgInputRow.svelte";
   import type { AddOrgMode } from "$lib/api";
 
   const dispatch = createEventDispatcher<{

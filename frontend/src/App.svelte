@@ -5,7 +5,7 @@
   import { orderBy } from "lodash-es";
   import AddOrgSection from "$lib/components/layout/AddOrgSection.svelte";
   import AppHeader from "$lib/components/layout/AppHeader.svelte";
-  import OrgAccordion from "$lib/components/OrgAccordion.svelte";
+  import OrgAccordion from "$lib/components/orgs/OrgAccordion.svelte";
   import Spinner from "$lib/components/Spinner.svelte";
   import Toolbar from "$lib/components/layout/Toolbar.svelte";
   import ScratchOrgSection from "$lib/components/layout/ScratchOrgSection.svelte";

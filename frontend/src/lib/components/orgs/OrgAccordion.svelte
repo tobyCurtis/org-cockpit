@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { SfOrg } from "$lib/api";
-  import OrgRow from "$lib/components/OrgRow.svelte";
+  import OrgRow from "$lib/components/orgs/OrgRow.svelte";
 
   export let namespace: string;
   export let prodOrgs: SfOrg[] = [];
