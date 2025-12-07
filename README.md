@@ -1,4 +1,7 @@
-# Org Cockpit
+<p align="center">
+  <img src="assets/org-cockpit-hero.png" width="400" alt="Org Cockpit Hero Banner">
+</p>
+
 
 Org Cockpit is a cross-platform desktop application for Salesforce developers and administrators.
 It provides a clean and efficient UI for managing many Salesforce orgs using the Salesforce CLI (sf).
