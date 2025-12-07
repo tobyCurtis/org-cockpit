@@ -13,17 +13,6 @@
 
   const toggle = () => dispatch("toggle");
   const openOrg = (org: SfOrg) => dispatch("open", { org });
-
-  function formatLastUsed(value?: string): string {
-    if (!value) return "";
-    try {
-      const d = new Date(value);
-      if (isNaN(d.getTime())) return value;
-      return d.toLocaleString();
-    } catch {
-      return value;
-    }
-  }
 </script>
 
 <section class="accordion">

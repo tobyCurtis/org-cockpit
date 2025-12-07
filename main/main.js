@@ -2,8 +2,6 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const { execFile } = require("child_process");
 
-console.log("RUNNING UPDATED MAIN.JS");
-
 function findSfBinary() {
   const fs = require("fs");
   const path = require("path");
@@ -69,7 +67,6 @@ function findSfBinary() {
 }
 
 const SF_BIN = findSfBinary();
-console.log("Using sf binary:", SF_BIN);
 
 // Inject sf directory into PATH (cross-platform)
 if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
@@ -77,7 +74,6 @@ if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
   const sep = process.platform === "win32" ? ";" : ":";
 
   process.env.PATH = `${sfDir}${sep}${process.env.PATH}`;
-  console.log("Effective PATH for child processes:", process.env.PATH);
 }
 
 
@@ -88,14 +84,10 @@ const isDev = process.env.NODE_ENV === "DEV";
 // --------------------------------------------------
 ipcMain.handle("get-orgs", async () => {
   return new Promise((resolve, reject) => {
-    console.log("👉 Using SF_BIN for get-orgs:", SF_BIN);
-
     execFile(
       SF_BIN,
       ["org", "list", "--json", "--loglevel", "fatal"],
       (err, stdout, stderr) => {
-        console.log("slice: ", stdout.slice(0, 10));
-
         if (err) {
           console.error("Error running sf org list:", stderr || err);
           reject(stderr || err.message || "Failed to run sf org list");
@@ -146,8 +138,6 @@ ipcMain.handle("open-org", async (_event, target) => {
       return;
     }
 
-    console.log(`Opening org: ${target} via`, SF_BIN);
-
     execFile(
       SF_BIN,
       ["org", "open", "--target-org", target],
@@ -173,17 +163,6 @@ ipcMain.handle("add-org", async (_event, options) => {
     let instanceUrl = options?.instanceUrl?.trim();
     let alias = options?.alias?.trim();
 
-    console.log(
-      "Starting sf org login web, mode:",
-      mode,
-      "instanceUrl:",
-      instanceUrl,
-      "alias:",
-      alias,
-      "via",
-      SF_BIN
-    );
-
     const args = ["org", "login", "web"];
 
     // If alias provided, use it
@@ -207,8 +186,6 @@ ipcMain.handle("add-org", async (_event, options) => {
       args.push("--instance-url", instanceUrl);
     }
 
-    console.log("Running command:", SF_BIN, args.join(" "));
-
     execFile(SF_BIN, args, (err, stdout, stderr) => {
       if (err) {
         console.error("Error running sf org login web:", stderr || err);
@@ -216,7 +193,6 @@ ipcMain.handle("add-org", async (_event, options) => {
         return;
       }
 
-      console.log("sf org login web completed successfully");
       resolve({ success: true });
     });
   });

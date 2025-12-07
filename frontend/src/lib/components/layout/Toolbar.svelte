@@ -35,13 +35,6 @@
 </div>
 
 <style>
-  /* Move your existing toolbar styles here so they’re scoped */
-
-  .accordion-toolbar #expand-all {
-    margin-left: auto;
-  }
-
-
   .accordion-toolbar {
     display: flex;
     align-items: center;
@@ -72,16 +65,4 @@
     gap: 0.5rem;
   }
 
-
-  .accordion-toolbar {
-    /* existing styles */
-  }
-
-  .org-search {
-    /* existing styles */
-  }
-
-  .accordion-toolbar-buttons {
-    /* existing styles */
-  }
 </style>
