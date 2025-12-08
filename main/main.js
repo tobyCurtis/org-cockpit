@@ -206,6 +206,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     title: "Org Cockpit",
+    icon: path.join(__dirname, "main/icon.icns"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },

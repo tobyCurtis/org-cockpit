@@ -1,6 +1,16 @@
 <p align="center">
   <img src="assets/org-cockpit-hero.png" width="400" alt="Org Cockpit Hero Banner">
 </p>
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS-blue?logo=apple&logoColor=white" />
+  <img src="https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white" />
+  <img src="https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white" />
+  <img src="https://img.shields.io/badge/Svelte-FF3E00?logo=svelte&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Salesforce_CLI-00A1E0?logo=salesforce&logoColor=white" />
+</p>
+
 
 
 Org Cockpit is a cross-platform desktop application for Salesforce developers and administrators.

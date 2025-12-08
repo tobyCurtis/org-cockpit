@@ -33,7 +33,8 @@
 
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"]
+      "target": ["dmg", "zip"],
+      "icon": "main/icon.icns"
     },
 
     "win": {
