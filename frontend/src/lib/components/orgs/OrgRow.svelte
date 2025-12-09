@@ -37,7 +37,7 @@
     <span class="instance">{org.instanceUrl}</span>
 
     <div class="badges">
-      {#if isSandbox}
+      <!-- {#if isSandbox}
         <span class="badge sandbox">Sandbox</span>
       {/if}
       {#if isScratch}
@@ -45,7 +45,7 @@
       {/if}
       {#if isDefault}
         <span class="badge default">Default</span>
-      {/if}
+      {/if} -->
       {#if org.isDevHub}
         <span class="badge devhub">Dev Hub</span>
       {/if}

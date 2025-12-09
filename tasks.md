@@ -1,12 +1,35 @@
 # Outstanding Tasks
-- Componentize
-- Delete orgs
 - Hover state on rows
+- Org actions
+    - Remove Last Used, and replace with a button that says Actions with an arrow like Add Org
+    - Delete
+    - ReAuthenticate
+    - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort
+- Live search should open rows with matches
+    - When you clear live search, rows are collapsed again
+- Componentize Buttons, replace individual declearations
+    - Common style, so the buttons are all the same size / design
+    - Open button looks like badges currently, not consistent
 - Hotkeys?
+    - Tab across rows / into search only
+    - Enter to open
+    - Command Backspace to delete
+        - Prompt to verify
+- Settings
+    - Display Radio
+        - Organize orgs by namespace
+        - Organize orgs by when they were last opened
+    - Light / Dark / System
+- Rust / Tauri migration
+- Rewrite auth pieces of the CLI only in rust for max mini-ness
+
 
 # Done
+- Error display
 - Live search
 - Alias an org
 - Grouping for your orgs
     - By my domain perhaps, to separate the environments
     - Ability to alias the groups if you want to change it from the my domain
+- Componentize first pass
+- Readme
