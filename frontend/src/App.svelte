@@ -8,6 +8,7 @@
   import ScratchOrgSection from "$lib/components/layout/ScratchOrgSection.svelte";
   import OtherOrgSection from "$lib/components/layout/OtherOrgSection.svelte";
   import { orgState } from "$lib/orgs/orgState";
+  import { Toaster } from "svelte-french-toast";
 
   const {
     searchTerm,
@@ -33,6 +34,8 @@
     cancelAdd,
     startLogin,
     reauthenticate,
+    remove,
+    generateAuthLink,
     open,
     isDefault,
   } = orgState;
@@ -90,6 +93,10 @@
               open(org);
             } else if (action === "reauth") {
               reauthenticate(org);
+            } else if (action === "delete") {
+              remove(org);
+            } else if (action === "authurl") {
+              generateAuthLink(org);
             }
           }}
           isDefaultFn={isDefault}
@@ -108,6 +115,10 @@
             open(org);
           } else if (action === "reauth") {
             reauthenticate(org);
+          } else if (action === "delete") {
+            remove(org);
+          } else if (action === "authurl") {
+            generateAuthLink(org);
           }
         }}
       />
@@ -124,6 +135,10 @@
             open(org);
           } else if (action === "reauth") {
             reauthenticate(org);
+          } else if (action === "delete") {
+            remove(org);
+          } else if (action === "authurl") {
+            generateAuthLink(org);
           }
         }}
       />
@@ -134,6 +149,8 @@
     {/if}
   {/if}
 </main>
+
+<Toaster position="bottom-center" />
 
 <style>
   main {

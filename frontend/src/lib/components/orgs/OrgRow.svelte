@@ -8,7 +8,6 @@
   export let org: SfOrg;
   export let isDefaultFn: ((org: SfOrg) => boolean) | undefined;
   export let variant: "prod" | "sandbox" | "scratch" = "prod";
-  export let showStatusDot: boolean = true;
 
   const dispatch = createEventDispatcher<{
     open: { org: SfOrg };
@@ -60,6 +59,7 @@
       items={[
         { label: "Re-Authenticate", value: "reauth" },
         { label: "Delete", value: "delete" },
+        { label: "Generate Auth URL", value: "authurl" },
       ]}
     />
 
@@ -123,47 +123,12 @@
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
 
-  .badge.sandbox {
-    background: #f0f5ff;
-    border-color: #c3d4ff;
-    color: #666;
-  }
-
-  .badge.scratch {
-    background: #f0f5ff;
-    border-color: #c3d4ff;
-    color: #666;
-  }
-
   .badge.devhub {
     background: #fff7e6;
     border-color: #ffdaa3;
     color: #666;
   }
 
-  .line-main button {
-    font-size: 0.8rem;
-    padding: 0.15rem 0.45rem;
-  }
-
-  .line-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    width: 100%;
-    gap: 1rem;
-    margin-top: 0.25rem;
-  }
-
-  .status-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    flex: 1;
-    text-align: left;
-    word-break: break-word;
-    white-space: normal;
-  }
 
   .status-dot {
     width: 0.55rem;
@@ -179,16 +144,6 @@
 
   .status-dot.bad {
     background-color: #d9534f;
-  }
-
-  .line-meta .meta:last-child {
-    white-space: nowrap;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .meta {
-    color: #666;
   }
 
   .error-line {

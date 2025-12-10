@@ -26,3 +26,11 @@ export async function addOrg(
 export async function cancelAddOrg(): Promise<void> {
   await window.electron.ipcRenderer.invoke('cancel-add-org');
 }
+
+export async function deleteOrg(target: string): Promise<void> {
+  await window.electron.ipcRenderer.invoke('delete-org', target);
+}
+
+export async function generateAuthUrl(target: string): Promise<void> {
+  await window.electron.ipcRenderer.invoke('generate-auth-url', target);
+}

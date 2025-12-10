@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import Input from "$lib/components/ui/Input.svelte";
 
   export let value = "";
   export let placeholder = "";
@@ -17,11 +18,7 @@
 </script>
 
 <div class="custom-input">
-  <input
-    type="text"
-    bind:value={value}
-    {placeholder}
-  />
+  <Input bind:value {placeholder} fullWidth />
 
   {#if showButtons}
     <div class={`buttons ${buttonsInline ? "inline" : "stacked"}`}>
@@ -39,21 +36,14 @@
   .custom-input {
     margin: 0.5rem 0 1rem;
     display: flex;
-    gap: 0.5rem;
     align-items: center;
     flex-wrap: wrap;
-  }
-
-  .custom-input input {
-    flex: 1 1 auto;
-    min-width: 220px;
-    padding: 0.25rem 0.4rem;
-    font-size: 0.85rem;
   }
 
   .buttons {
     display: flex;
     gap: 0.4rem;
+    margin-top: 0.5rem;
   }
 
   .buttons.stacked {

@@ -1,10 +1,13 @@
 import { derived, get, writable } from "svelte/store";
 import { orderBy } from "lodash-es";
+import toast from "svelte-french-toast";
 import {
   addOrg,
   cancelAddOrg,
   getAuthorizedOrgs,
   openOrg,
+  deleteOrg,
+  generateAuthUrl,
   type AddOrgMode,
   type OrgListResult,
   type SfOrg,
@@ -308,6 +311,44 @@ function createOrgState() {
     }
   }
 
+  async function remove(org: SfOrg) {
+    const target = org.alias || org.username;
+    if (!target) {
+      error.set("Org has no alias or username to delete");
+      return;
+    }
+
+    loading.set(true);
+    error.set(null);
+
+    try {
+      await deleteOrg(target);
+      await loadOrgs();
+    } catch (e) {
+      if (e instanceof Error) error.set(e.message);
+      else error.set(String(e));
+    } finally {
+      loading.set(false);
+    }
+  }
+
+  async function generateAuthLink(org: SfOrg) {
+    const target = org.alias || org.username;
+    if (!target) {
+      error.set("Org has no alias or username to generate auth URL");
+      return;
+    }
+
+    error.set(null);
+    try {
+      await generateAuthUrl(target);
+      toast.success("Auth URL copied to clipboard");
+    } catch (e) {
+      if (e instanceof Error) error.set(e.message);
+      else error.set(String(e));
+    }
+  }
+
   return {
     orgs,
     groupedOrgs,
@@ -336,6 +377,8 @@ function createOrgState() {
     cancelAdd,
     startLogin,
     reauthenticate,
+    remove,
+    generateAuthLink,
     open,
     isDefault,
   };

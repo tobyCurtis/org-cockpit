@@ -30,7 +30,6 @@
             {org}
             {isDefaultFn}
             variant="scratch"
-            showStatusDot={false}
             on:open={handleOpen}
             on:action={handleAction}
           />

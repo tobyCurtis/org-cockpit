@@ -1,9 +1,6 @@
 # Outstanding Tasks
-- Org actions
-    - Remove Last Used, and replace with a button that says Actions with an arrow like Add Org
-    - Delete
-    - ReAuthenticate
-    - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort
+
+- Auth with an auth url
 - Live search should open rows with matches
     - When you clear live search, rows are collapsed again
 - Hotkeys?
@@ -33,3 +30,12 @@
 - Componentize Buttons, replace individual declearations
     - Common style, so the buttons are all the same size / design
     - Open button looks like badges currently, not consistent
+- Componentize input, match styles
+- Make accordion square, border radius is weird
+- Flatten row, add tooltip for status dot
+- Org actions
+    - Remove Last Used, and replace with a button that says Actions with an arrow like Add Org
+    - Delete
+    - ReAuthenticate
+    - Generate Auth URL
+    - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort

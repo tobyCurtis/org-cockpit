@@ -30,7 +30,6 @@
             {org}
             {isDefaultFn}
             variant="prod"          
-            showStatusDot={false}
             on:open={handleOpen}
             on:action={handleAction}
           />

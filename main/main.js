@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, clipboard } = require("electron");
 const path = require("path");
 const { execFile } = require("child_process");
 
@@ -79,6 +79,22 @@ if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
 
 const isDev = process.env.NODE_ENV === "DEV";
 
+function parseSfJson(raw) {
+  if (!raw) throw new Error("Empty sf output");
+  const str = raw.toString();
+  const firstBrace = str.indexOf("{");
+  const lastBrace = str.lastIndexOf("}");
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    throw new Error("Could not locate JSON braces in sf output");
+  }
+
+  let candidate = str.slice(firstBrace, lastBrace + 1);
+  candidate = candidate.replace(/\u001b\[[0-9;]*[A-Za-z]/g, ""); // strip ANSI
+  candidate = candidate.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+
+  return JSON.parse(candidate);
+}
+
 // --------------------------------------------------
 // Track long-running add-org process so we can cancel
 // --------------------------------------------------
@@ -102,32 +118,7 @@ ipcMain.handle("get-orgs", async () => {
         }
 
         try {
-          let raw = stdout ? stdout.toString() : "";
-
-          const firstBrace = raw.indexOf("{");
-          const lastBrace = raw.lastIndexOf("}");
-
-          if (
-            firstBrace === -1 ||
-            lastBrace === -1 ||
-            lastBrace <= firstBrace
-          ) {
-            console.error("Could not locate JSON braces in sf output:", raw);
-            reject("Failed to parse sf org list output");
-            return;
-          }
-
-          let candidate = raw.slice(firstBrace, lastBrace + 1);
-
-          // Strip ANSI escape codes
-          candidate = candidate.replace(/\u001b\[[0-9;]*[A-Za-z]/g, "");
-          // Strip other control chars
-          candidate = candidate.replace(
-            /[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g,
-            ""
-          );
-
-          const result = JSON.parse(candidate);
+          const result = parseSfJson(stdout);
           resolve(result);
         } catch (parseErr) {
           console.error("Failed to parse sf org list output:", parseErr);
@@ -251,6 +242,74 @@ ipcMain.handle("cancel-add-org", async () => {
     }
   }
   return { cancelled: true };
+});
+
+// --------------------------------------------------
+// IPC: generate auth URL and copy to clipboard
+// --------------------------------------------------
+ipcMain.handle("generate-auth-url", async (_event, target) => {
+  return new Promise((resolve, reject) => {
+    if (!target) {
+      reject("No target org specified");
+      return;
+    }
+
+    execFile(
+      SF_BIN,
+      ["org", "display", "--target-org", target, "--verbose", "--json"],
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error("Error running sf org display:", stderr || err);
+          reject(stderr || err.message || "Failed to generate auth URL");
+          return;
+        }
+
+        try {
+          const parsed = parseSfJson(stdout);
+          const authUrl =
+            parsed?.result?.sfdxAuthUrl ||
+            parsed?.result?.authUrl ||
+            parsed?.result?.sfdxAuthUrlV2;
+
+          if (!authUrl) {
+            reject("Auth URL not available for this org");
+            return;
+          }
+
+          clipboard.writeText(authUrl);
+          resolve({ success: true, authUrl });
+        } catch (e) {
+          reject(e instanceof Error ? e.message : String(e));
+        }
+      },
+    );
+  });
+});
+
+// --------------------------------------------------
+// IPC: delete org
+// --------------------------------------------------
+ipcMain.handle("delete-org", async (_event, target) => {
+  return new Promise((resolve, reject) => {
+    if (!target) {
+      reject("No target org specified");
+      return;
+    }
+
+    execFile(
+      SF_BIN,
+      ["org", "logout", "--target-org", target, "--noprompt"],
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error("Error running sf org logout:", stderr || err);
+          reject(stderr || err.message || "Failed to delete org");
+          return;
+        }
+
+        resolve({ success: true });
+      }
+    );
+  });
 });
 
 // --------------------------------------------------

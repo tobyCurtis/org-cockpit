@@ -49,7 +49,6 @@
             {org}
             {isDefaultFn}
             variant="prod"
-            showStatusDot={true}
             on:open={(event) => openOrg(event.detail.org)}
             on:action={(event) =>
               handleAction(event.detail.org, event.detail.action, "prod")
@@ -65,7 +64,6 @@
             {org}
             {isDefaultFn}
             variant="sandbox"
-            showStatusDot={true}
             on:open={(event) => openOrg(event.detail.org)}
             on:action={(event) =>
               handleAction(event.detail.org, event.detail.action, "sandbox")
