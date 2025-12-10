@@ -13,6 +13,8 @@
 
   const toggle = () => dispatch("toggle");
   const openOrg = (org: SfOrg) => dispatch("open", { org });
+  const handleAction = (org: SfOrg, action: string, variant: "prod" | "sandbox" | "scratch") =>
+    dispatch("action", { org, action, variant });
 </script>
 
 <section class="accordion">
@@ -49,6 +51,9 @@
             variant="prod"
             showStatusDot={true}
             on:open={(event) => openOrg(event.detail.org)}
+            on:action={(event) =>
+              handleAction(event.detail.org, event.detail.action, "prod")
+            }
           />
         {/each}
       {/if}
@@ -62,6 +67,9 @@
             variant="sandbox"
             showStatusDot={true}
             on:open={(event) => openOrg(event.detail.org)}
+            on:action={(event) =>
+              handleAction(event.detail.org, event.detail.action, "sandbox")
+            }
           />
         {/each}
       {/if}
@@ -74,7 +82,7 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     margin-bottom: 0.75rem;
     background: #fff;
-    border-radius: 6px;
+    border-radius: 0;
   }
 
   .accordion-header {
@@ -88,6 +96,7 @@
     cursor: pointer;
     outline: none;
     transition: background 0.15s ease-in-out;
+    border-radius: 0;
   }
 
   .accordion-header:hover {
@@ -126,7 +135,6 @@
   }
 
   .accordion-body {
-    padding: 0.4rem 0.6rem 0.5rem;
     border-top: 1px solid rgba(0, 0, 0, 0.06);
   }
 

@@ -80,6 +80,13 @@ if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
 const isDev = process.env.NODE_ENV === "DEV";
 
 // --------------------------------------------------
+// Track long-running add-org process so we can cancel
+// --------------------------------------------------
+let addOrgProcess = null;
+let addOrgCancelled = false;
+const logPrefix = "[add-org]";
+
+// --------------------------------------------------
 // IPC: org actions
 // --------------------------------------------------
 ipcMain.handle("get-orgs", async () => {
@@ -159,6 +166,8 @@ ipcMain.handle("open-org", async (_event, target) => {
 // --------------------------------------------------
 ipcMain.handle("add-org", async (_event, options) => {
   return new Promise((resolve, reject) => {
+    addOrgCancelled = false;
+
     const mode = options?.mode || "production";
     let instanceUrl = options?.instanceUrl?.trim();
     let alias = options?.alias?.trim();
@@ -186,16 +195,62 @@ ipcMain.handle("add-org", async (_event, options) => {
       args.push("--instance-url", instanceUrl);
     }
 
-    execFile(SF_BIN, args, (err, stdout, stderr) => {
+    if (addOrgProcess) {
+      try {
+        console.log(`${logPrefix} killing stale addOrgProcess pid=${addOrgProcess.pid}`);
+        addOrgProcess.kill();
+      } catch (e) {
+        console.warn(`${logPrefix} failed to kill stale process`, e);
+      }
+    }
+
+    addOrgProcess = execFile(SF_BIN, args, (err, stdout, stderr) => {
+      addOrgProcess = null;
+
+      if (addOrgCancelled) {
+        resolve({ cancelled: true });
+        return;
+      }
+
       if (err) {
-        console.error("Error running sf org login web:", stderr || err);
+        console.error(`${logPrefix} error running sf org login web:`, stderr || err);
         reject(stderr || err.message || "Failed to start org login");
         return;
       }
 
+        console.log(`${logPrefix} org login completed successfully`);
       resolve({ success: true });
     });
+
+    console.log(`${logPrefix} started login pid=${addOrgProcess.pid} mode=${mode} alias=${alias || "(none)"}`);
+
+    addOrgProcess.on("exit", (code, signal) => {
+      console.log(`${logPrefix} process exit pid=${addOrgProcess?.pid} code=${code} signal=${signal} cancelled=${addOrgCancelled}`);
+    });
   });
+});
+
+// --------------------------------------------------
+// IPC: cancel add-org
+// --------------------------------------------------
+ipcMain.handle("cancel-add-org", async () => {
+  addOrgCancelled = true;
+  if (addOrgProcess) {
+    try {
+      const pid = addOrgProcess.pid;
+      console.log(`${logPrefix} cancelling login pid=${pid} (SIGTERM)`);
+      addOrgProcess.kill();
+      setTimeout(() => {
+        if (addOrgProcess && !addOrgProcess.killed) {
+          console.log(`${logPrefix} forcing kill pid=${pid} (SIGKILL fallback)`);
+          addOrgProcess.kill("SIGKILL");
+        }
+      }, 500);
+    } catch (e) {
+      console.warn(`${logPrefix} failed to kill add-org process:`, e);
+    }
+  }
+  return { cancelled: true };
 });
 
 // --------------------------------------------------

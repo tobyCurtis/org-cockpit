@@ -34,6 +34,7 @@
       bind:value={customInstanceUrl}
       placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
       showButtons={true}
+      buttonsInline={false}
       primaryLabel="Start Login"
       secondaryLabel="Cancel"
       primaryDisabled={adding}
@@ -45,6 +46,7 @@
       bind:value={aliasInput}
       placeholder="Alias (optional, e.g. cms-prod)"
       showButtons={true}
+      buttonsInline={false}
       primaryLabel="Start Login"
       secondaryLabel="Cancel"
       primaryDisabled={adding}

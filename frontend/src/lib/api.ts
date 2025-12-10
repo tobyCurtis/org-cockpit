@@ -22,3 +22,7 @@ export async function addOrg(
 ): Promise<void> {
   await window.electron.ipcRenderer.invoke('add-org', { mode, instanceUrl, alias });
 }
+
+export async function cancelAddOrg(): Promise<void> {
+  await window.electron.ipcRenderer.invoke('cancel-add-org');
+}

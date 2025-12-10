@@ -2,6 +2,7 @@ import { derived, get, writable } from "svelte/store";
 import { orderBy } from "lodash-es";
 import {
   addOrg,
+  cancelAddOrg,
   getAuthorizedOrgs,
   openOrg,
   type AddOrgMode,
@@ -162,7 +163,7 @@ function createOrgState() {
           ]),
         }))
         .sort((a, b) => a.namespace.localeCompare(b.namespace));
-
+      console.log('grouped', grouped)
       groupedOrgs.set(grouped);
 
       scratchOrgs.set(
@@ -223,9 +224,17 @@ function createOrgState() {
     customInstanceUrl.set("");
   }
 
-  function cancelAdd() {
+  async function cancelAdd() {
+    const wasAdding = get(adding);
     resetAddState();
     adding.set(false);
+    if (wasAdding) {
+      try {
+        await cancelAddOrg();
+      } catch (e) {
+        console.warn("Failed to cancel add org", e);
+      }
+    }
   }
 
   async function startLogin() {
@@ -282,6 +291,23 @@ function createOrgState() {
     return org.isDefaultUsername === true || org.defaultMarker === "(U)";
   }
 
+  async function reauthenticate(org: SfOrg) {
+    const alias = org.alias?.trim() || undefined;
+    const instanceUrl = org.instanceUrl?.trim();
+    adding.set(true);
+    error.set(null);
+
+    try {
+      await addOrg("custom", instanceUrl, alias);
+      await loadOrgs();
+    } catch (e) {
+      if (e instanceof Error) error.set(e.message);
+      else error.set(String(e));
+    } finally {
+      adding.set(false);
+    }
+  }
+
   return {
     orgs,
     groupedOrgs,
@@ -309,6 +335,7 @@ function createOrgState() {
     startAdd,
     cancelAdd,
     startLogin,
+    reauthenticate,
     open,
     isDefault,
   };

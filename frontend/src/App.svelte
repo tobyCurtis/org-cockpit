@@ -3,7 +3,7 @@
   import AddOrgSection from "$lib/components/layout/AddOrgSection.svelte";
   import AppHeader from "$lib/components/layout/AppHeader.svelte";
   import OrgAccordion from "$lib/components/orgs/OrgAccordion.svelte";
-  import Spinner from "$lib/components/Spinner.svelte";
+  import Spinner from "$lib/components/ui/Spinner.svelte";
   import Toolbar from "$lib/components/layout/Toolbar.svelte";
   import ScratchOrgSection from "$lib/components/layout/ScratchOrgSection.svelte";
   import OtherOrgSection from "$lib/components/layout/OtherOrgSection.svelte";
@@ -32,6 +32,7 @@
     startAdd,
     cancelAdd,
     startLogin,
+    reauthenticate,
     open,
     isDefault,
   } = orgState;
@@ -45,6 +46,7 @@
     adding={$adding}
     on:refresh={loadOrgs}
     on:addorg={(event) => startAdd(event.detail.kind)}
+    on:cancel={cancelAdd}
   />
 
   <AddOrgSection
@@ -82,6 +84,14 @@
           expanded={!!$expandedNamespaces[group.namespace]}
           on:toggle={() => toggleNamespace(group.namespace)}
           on:open={(event) => open(event.detail.org)}
+          on:action={(event) => {
+            const { org, action, variant } = event.detail;
+            if (action === "open") {
+              open(org);
+            } else if (action === "reauth") {
+              reauthenticate(org);
+            }
+          }}
           isDefaultFn={isDefault}
         />
       {/each}
@@ -92,6 +102,14 @@
         scratchOrgs={$filteredScratchOrgs}
         isDefaultFn={isDefault}
         on:open={(event) => open(event.detail.org)}
+        on:action={(event) => {
+          const { org, action, variant } = event.detail;
+          if (action === "open") {
+            open(org);
+          } else if (action === "reauth") {
+            reauthenticate(org);
+          }
+        }}
       />
     {/if}
 
@@ -100,6 +118,14 @@
         otherOrgs={$filteredUngroupedOrgs}
         isDefaultFn={isDefault}
         on:open={(event) => open(event.detail.org)}
+        on:action={(event) => {
+          const { org, action, variant } = event.detail;
+          if (action === "open") {
+            open(org);
+          } else if (action === "reauth") {
+            reauthenticate(org);
+          }
+        }}
       />
     {/if}
 

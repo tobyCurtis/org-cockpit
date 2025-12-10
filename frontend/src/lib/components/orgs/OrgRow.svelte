@@ -2,6 +2,8 @@
   import { createEventDispatcher } from "svelte";
   import type { SfOrg } from "$lib/api";
   import Button from "$lib/components/ui/Button.svelte";
+  import DropdownMenu from "$lib/components/ui/DropdownMenu.svelte";
+  import Tooltip from "$lib/components/ui/Tooltip.svelte";
 
   export let org: SfOrg;
   export let isDefaultFn: ((org: SfOrg) => boolean) | undefined;
@@ -10,26 +12,20 @@
 
   const dispatch = createEventDispatcher<{
     open: { org: SfOrg };
+    action: { org: SfOrg; action: string; variant: typeof variant };
   }>();
 
   function handleOpen() {
     dispatch("open", { org });
   }
 
+  function handleAction(value: string) {
+    dispatch("action", { org, action: value, variant });
+  }
+
   $: isDefault = isDefaultFn ? isDefaultFn(org) : false;
   $: isSandbox = variant === "sandbox";
   $: isScratch = variant === "scratch";
-
-  function formatLastUsed(value?: string): string {
-    if (!value) return "";
-    try {
-      const d = new Date(value);
-      if (isNaN(d.getTime())) return value;
-      return d.toLocaleString();
-    } catch {
-      return value;
-    }
-  }
 </script>
 
 <div class="org-row">
@@ -50,9 +46,11 @@
     <span class="meta status-meta">
       {#if org.connectedStatus}
         {#if showStatusDot}
-          <span
-            class="status-dot {org.connectedStatus === 'Connected' ? 'ok' : 'bad'}"
-          ></span>
+          <Tooltip content={org.connectedStatus} placement="top">
+            <span
+              class="status-dot {org.connectedStatus === 'Connected' ? 'ok' : 'bad'}"
+            ></span>
+          </Tooltip>
           {org.connectedStatus}
         {:else}
           Status: {org.connectedStatus}
@@ -61,9 +59,17 @@
     </span>
 
     <span class="meta">
-      {#if org.lastUsed}
-        Last used: {formatLastUsed(org.lastUsed)}
-      {/if}
+      <DropdownMenu
+        label="Actions"
+        size="sm"
+        align="left"
+        variant="ghost"
+        on:select={(event) => handleAction(event.detail.value)}
+        items={[
+          { label: "Re-Authenticate", value: "reauth" },
+          { label: "Delete", value: "delete" },
+        ]}
+      />
     </span>
   </div>
 </div>
@@ -71,9 +77,9 @@
 <style>
   .org-row {
     padding: 0.55rem 0.65rem;
-    border-radius: 8px;
     transition: background 0.15s ease, border-color 0.15s ease;
     border: 1px solid transparent;
+    border-radius: 0;
   }
 
   .org-row:hover {

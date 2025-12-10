@@ -8,10 +8,15 @@
 
   const dispatch = createEventDispatcher<{
     open: { org: SfOrg };
+    action: { org: SfOrg; action: string; variant: "sandbox" | "prod" | "scratch" };
   }>();
 
   function handleOpen(event: CustomEvent<{ org: SfOrg }>) {
     dispatch("open", event.detail);
+  }
+
+  function handleAction(event: CustomEvent<{ org: SfOrg; action: string; variant: "prod" | "sandbox" | "scratch" }>) {
+    dispatch("action", event.detail);
   }
 </script>
 
@@ -27,6 +32,7 @@
             variant="prod"          
             showStatusDot={false}
             on:open={handleOpen}
+            on:action={handleAction}
           />
         </li>
       {/each}

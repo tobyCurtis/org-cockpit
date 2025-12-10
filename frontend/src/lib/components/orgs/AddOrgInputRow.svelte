@@ -5,6 +5,7 @@
   export let value = "";
   export let placeholder = "";
   export let showButtons = true;
+  export let buttonsInline = true;
   export let primaryLabel = "Start Login";
   export let secondaryLabel = "Cancel";
   export let primaryDisabled = false;
@@ -23,12 +24,14 @@
   />
 
   {#if showButtons}
-    <Button variant="primary" size="sm" on:click={handlePrimary} disabled={primaryDisabled}>
-      {primaryLabel}
-    </Button>
-    <Button variant="secondary" size="sm" on:click={handleSecondary}>
-      {secondaryLabel}
-    </Button>
+    <div class={`buttons ${buttonsInline ? "inline" : "stacked"}`}>
+      <Button variant="secondary" size="sm" on:click={handleSecondary}>
+        {secondaryLabel}
+      </Button>
+      <Button variant="primary" size="sm" on:click={handlePrimary} disabled={primaryDisabled}>
+        {primaryLabel}
+      </Button>
+    </div>
   {/if}
 </div>
 
@@ -38,11 +41,23 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   .custom-input input {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 220px;
     padding: 0.25rem 0.4rem;
     font-size: 0.85rem;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .buttons.stacked {
+    width: 100%;
+    justify-content: flex-end;
   }
 </style>
