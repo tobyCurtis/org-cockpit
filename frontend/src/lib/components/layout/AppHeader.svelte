@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import { clickOutside } from "$lib/actions/clickOutside";
 
   const dispatch = createEventDispatcher<{
     refresh: void;
@@ -32,25 +34,51 @@
 
   <div class="controls">
     {#if !loading}
-      <button on:click={handleRefresh}>
+      <Button variant="secondary" size="sm" on:click={handleRefresh}>
         Refresh
-      </button>
+      </Button>
     {/if}
 
-    <div class="dropdown-trigger">
-      <button on:click={toggleAddMenu} disabled={adding}>
+    <div class="dropdown-trigger" use:clickOutside={() => (addMenuOpen = false)}>
+      <Button
+        variant="primary"
+        size="sm"
+        on:click={toggleAddMenu}
+        disabled={adding}
+      >
         {#if adding}
           Waiting for login…
         {:else}
           Add Org ▾
         {/if}
-      </button>
+      </Button>
 
       {#if addMenuOpen}
         <div class="dropdown-menu">
-          <button on:click={() => handleAdd("production")}>Production</button>
-          <button on:click={() => handleAdd("sandbox")}>Sandbox</button>
-          <button on:click={() => handleAdd("custom")}>Custom…</button>
+          <Button
+            variant="menu"
+            size="sm"
+            fullWidth
+            on:click={() => handleAdd("production")}
+          >
+            Production
+          </Button>
+          <Button
+            variant="menu"
+            size="sm"
+            fullWidth
+            on:click={() => handleAdd("sandbox")}
+          >
+            Sandbox
+          </Button>
+          <Button
+            variant="menu"
+            size="sm"
+            fullWidth
+            on:click={() => handleAdd("custom")}
+          >
+            Custom…
+          </Button>
         </div>
       {/if}
     </div>
@@ -62,20 +90,6 @@
     font-size: 1.4rem;
     margin: 0;
   }
-
-  button {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.85rem;
-    border-radius: 4px;
-    border: 1px solid #888;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
 
   header {
     display: flex;
@@ -101,7 +115,6 @@
     min-width: 140px;
   }
 
-
   .controls {
     display: flex;
     gap: 0.5rem;
@@ -126,16 +139,9 @@
     min-width: 140px;
   }
 
-  .dropdown-menu button {
+  .dropdown-menu :global(button) {
     width: 100%;
-    border: none;
     text-align: left;
-    padding: 0.35rem 0.6rem;
-    font-size: 0.85rem;
-    color: black;
-  }
-
-  .dropdown-menu button:hover {
-    background: rgba(0, 0, 0, 0.05);
+    justify-content: flex-start;
   }
 </style>

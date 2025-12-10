@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import Button from "$lib/components/ui/Button.svelte";
 
   const dispatch = createEventDispatcher<{
     expandall: void;
@@ -23,16 +24,16 @@
     type="text"
     class="org-search"
     placeholder="Filter orgs by alias or domain..."
-    bind:value={searchTerm}
-  />
+      bind:value={searchTerm}
+    />
 
-  {#if hasGroupedOrgs}
-    <div class="accordion-toolbar-buttons">
-      <button on:click={handleExpandAll}>Expand all</button>
-      <button on:click={handleCollapseAll}>Collapse all</button>
-    </div>
-  {/if}
-</div>
+    {#if hasGroupedOrgs}
+      <div class="accordion-toolbar-buttons">
+        <Button variant="secondary" size="sm" on:click={handleExpandAll}>Expand all</Button>
+        <Button variant="secondary" size="sm" on:click={handleCollapseAll}>Collapse all</Button>
+      </div>
+    {/if}
+  </div>
 
 <style>
   .accordion-toolbar {

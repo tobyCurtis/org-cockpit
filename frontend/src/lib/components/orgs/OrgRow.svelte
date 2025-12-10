@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { SfOrg } from "$lib/api";
+  import Button from "$lib/components/ui/Button.svelte";
 
   export let org: SfOrg;
   export let isDefaultFn: ((org: SfOrg) => boolean) | undefined;
@@ -37,21 +38,12 @@
     <span class="instance">{org.instanceUrl}</span>
 
     <div class="badges">
-      <!-- {#if isSandbox}
-        <span class="badge sandbox">Sandbox</span>
-      {/if}
-      {#if isScratch}
-        <span class="badge scratch">Scratch</span>
-      {/if}
-      {#if isDefault}
-        <span class="badge default">Default</span>
-      {/if} -->
       {#if org.isDevHub}
         <span class="badge devhub">Dev Hub</span>
       {/if}
     </div>
 
-    <button type="button" on:click={handleOpen}>Open</button>
+    <Button variant="primary" size="sm" on:click={handleOpen}>Open</Button>
   </div>
 
   <div class="line-meta">
@@ -77,6 +69,24 @@
 </div>
 
 <style>
+  .org-row {
+    padding: 0.55rem 0.65rem;
+    border-radius: 8px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    border: 1px solid transparent;
+  }
+
+  .org-row:hover {
+    background: #f5f7fb;
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .org-row:focus-within {
+    background: #eef4ff;
+    border-color: #bcd3ff;
+    outline: none;
+  }
+
   .line-main {
     display: flex;
     align-items: center;

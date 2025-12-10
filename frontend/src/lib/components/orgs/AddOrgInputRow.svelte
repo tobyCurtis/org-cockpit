@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import Button from "$lib/components/ui/Button.svelte";
 
   export let value = "";
   export let placeholder = "";
@@ -22,12 +23,12 @@
   />
 
   {#if showButtons}
-    <button on:click={handlePrimary} disabled={primaryDisabled}>
+    <Button variant="primary" size="sm" on:click={handlePrimary} disabled={primaryDisabled}>
       {primaryLabel}
-    </button>
-    <button on:click={handleSecondary}>
+    </Button>
+    <Button variant="secondary" size="sm" on:click={handleSecondary}>
       {secondaryLabel}
-    </button>
+    </Button>
   {/if}
 </div>
 

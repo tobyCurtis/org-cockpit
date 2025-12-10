@@ -1,5 +1,4 @@
 # Outstanding Tasks
-- Hover state on rows
 - Org actions
     - Remove Last Used, and replace with a button that says Actions with an arrow like Add Org
     - Delete
@@ -7,9 +6,6 @@
     - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort
 - Live search should open rows with matches
     - When you clear live search, rows are collapsed again
-- Componentize Buttons, replace individual declearations
-    - Common style, so the buttons are all the same size / design
-    - Open button looks like badges currently, not consistent
 - Hotkeys?
     - Tab across rows / into search only
     - Enter to open
@@ -33,3 +29,7 @@
     - Ability to alias the groups if you want to change it from the my domain
 - Componentize first pass
 - Readme
+- Hover state on rows
+- Componentize Buttons, replace individual declearations
+    - Common style, so the buttons are all the same size / design
+    - Open button looks like badges currently, not consistent
