@@ -26,10 +26,22 @@
   $: isDefault = isDefaultFn ? isDefaultFn(org) : false;
   $: isSandbox = variant === "sandbox";
   $: isScratch = variant === "scratch";
+  $: statusIsOk = org.connectedStatus === "Connected";
+  $: hasStatus = Boolean(org.connectedStatus);
+  $: hasStatusError = hasStatus && !statusIsOk;
 </script>
 
 <div class="org-row">
   <div class="line-main">
+    {#if hasStatus}
+      <Tooltip content={org.connectedStatus} placement="top">
+        <span
+          class="status-dot {statusIsOk ? 'ok' : 'bad'}"
+          aria-label={org.connectedStatus}
+        ></span>
+      </Tooltip>
+    {/if}
+
     <span class="alias">{org.alias || org.username}</span>
     <span class="instance">{org.instanceUrl}</span>
 
@@ -39,39 +51,26 @@
       {/if}
     </div>
 
+    <DropdownMenu
+      label="Actions"
+      size="sm"
+      align="left"
+      variant="ghost"
+      on:select={(event) => handleAction(event.detail.value)}
+      items={[
+        { label: "Re-Authenticate", value: "reauth" },
+        { label: "Delete", value: "delete" },
+      ]}
+    />
+
     <Button variant="primary" size="sm" on:click={handleOpen}>Open</Button>
   </div>
 
-  <div class="line-meta">
-    <span class="meta status-meta">
-      {#if org.connectedStatus}
-        {#if showStatusDot}
-          <Tooltip content={org.connectedStatus} placement="top">
-            <span
-              class="status-dot {org.connectedStatus === 'Connected' ? 'ok' : 'bad'}"
-            ></span>
-          </Tooltip>
-          {org.connectedStatus}
-        {:else}
-          Status: {org.connectedStatus}
-        {/if}
-      {/if}
-    </span>
-
-    <span class="meta">
-      <DropdownMenu
-        label="Actions"
-        size="sm"
-        align="left"
-        variant="ghost"
-        on:select={(event) => handleAction(event.detail.value)}
-        items={[
-          { label: "Re-Authenticate", value: "reauth" },
-          { label: "Delete", value: "delete" },
-        ]}
-      />
-    </span>
-  </div>
+  {#if hasStatusError && org.connectedStatus}
+    <div class="line-meta error-line">
+      Status: {org.connectedStatus}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -190,5 +189,11 @@
 
   .meta {
     color: #666;
+  }
+
+  .error-line {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: #b00020;
   }
 </style>
