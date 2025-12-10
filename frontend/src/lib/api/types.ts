@@ -20,4 +20,4 @@ export interface OrgListResult {
   warnings: string[];
 }
 
-export type AddOrgMode = "production" | "sandbox" | "custom";
+export type AddOrgMode = "production" | "sandbox" | "custom" | "authurl";

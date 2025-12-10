@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, clipboard } = require("electron");
 const path = require("path");
 const { execFile } = require("child_process");
+const fs = require("fs");
+const os = require("os");
 
 function findSfBinary() {
   const fs = require("fs");
@@ -170,6 +172,8 @@ ipcMain.handle("add-org", async (_event, options) => {
       args.push("--alias", alias);
     }
 
+    let tmpAuthUrlFile = null;
+
     if (mode === "sandbox") {
       args.push("--instance-url", "https://test.salesforce.com");
     } else if (mode === "custom") {
@@ -184,6 +188,22 @@ ipcMain.handle("add-org", async (_event, options) => {
       instanceUrl = instanceUrl.replace(/"/g, "");
 
       args.push("--instance-url", instanceUrl);
+    } else if (mode === "authurl") {
+      if (!instanceUrl) {
+        reject("Auth URL is required");
+        return;
+      }
+      try {
+        tmpAuthUrlFile = path.join(os.tmpdir(), `sf-auth-${Date.now()}.txt`);
+        fs.writeFileSync(tmpAuthUrlFile, instanceUrl, { encoding: "utf8" });
+      } catch (e) {
+        reject("Failed to write auth URL");
+        return;
+      }
+
+      args.splice(0, args.length, "org", "login", "sfdx-url");
+      args.push("--sfdx-url-file", tmpAuthUrlFile);
+      args.push("--no-prompt");
     }
 
     if (addOrgProcess) {
@@ -197,6 +217,9 @@ ipcMain.handle("add-org", async (_event, options) => {
 
     addOrgProcess = execFile(SF_BIN, args, (err, stdout, stderr) => {
       addOrgProcess = null;
+      if (tmpAuthUrlFile) {
+        fs.rm(tmpAuthUrlFile, { force: true }, () => {});
+      }
 
       if (addOrgCancelled) {
         resolve({ cancelled: true });

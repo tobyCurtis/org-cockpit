@@ -7,6 +7,7 @@
   export let placeholder = "";
   export let showButtons = true;
   export let buttonsInline = true;
+  export let type: "text" | "password" | "url" = "text";
   export let primaryLabel = "Start Login";
   export let secondaryLabel = "Cancel";
   export let primaryDisabled = false;
@@ -18,7 +19,7 @@
 </script>
 
 <div class="custom-input">
-  <Input bind:value {placeholder} fullWidth />
+  <Input bind:value {placeholder} {type} fullWidth />
 
   {#if showButtons}
     <div class={`buttons ${buttonsInline ? "inline" : "stacked"}`}>

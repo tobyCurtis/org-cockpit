@@ -1,5 +1,4 @@
 # Outstanding Tasks
-
 - Auth with an auth url
 - Live search should open rows with matches
     - When you clear live search, rows are collapsed again

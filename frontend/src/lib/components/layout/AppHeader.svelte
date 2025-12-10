@@ -44,11 +44,12 @@
       label={adding ? "Waiting for login…" : "Add Org"}
       size="sm"
       variant="primary"
-      on:select={(event) => handleAdd(event.detail.value as "production" | "sandbox" | "custom")}
+      on:select={(event) => handleAdd(event.detail.value as any)}
       items={[
         { label: "Production", value: "production", disabled: adding },
         { label: "Sandbox", value: "sandbox", disabled: adding },
-        { label: "Custom…", value: "custom", disabled: adding },
+        { label: "Custom", value: "custom", disabled: adding },
+        { label: "Auth URL", value: "authurl", disabled: adding },
       ]}
     />
   </div>

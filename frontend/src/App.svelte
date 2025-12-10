@@ -25,6 +25,7 @@
     addMode,
     aliasInput,
     customInstanceUrl,
+    authUrlInput,
     error,
     loadOrgs,
     toggleNamespace,
@@ -56,6 +57,7 @@
     addMode={$addMode}
     bind:aliasInput={$aliasInput}
     bind:customInstanceUrl={$customInstanceUrl}
+    bind:authUrlInput={$authUrlInput}
     adding={$adding}
     on:startlogin={startLogin}
     on:cancel={cancelAdd}

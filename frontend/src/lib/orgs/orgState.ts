@@ -72,6 +72,7 @@ function createOrgState() {
   const addMode = writable<AddOrgMode | null>(null);
   const aliasInput = writable("");
   const customInstanceUrl = writable("");
+  const authUrlInput = writable("");
   const error = writable<string | null>(null);
 
   const hasGroupedOrgs = derived(groupedOrgs, (value) => Boolean(value.length));
@@ -219,12 +220,14 @@ function createOrgState() {
     addMode.set(mode);
     aliasInput.set("");
     customInstanceUrl.set("");
+    authUrlInput.set("");
   }
 
   function resetAddState() {
     addMode.set(null);
     aliasInput.set("");
     customInstanceUrl.set("");
+    authUrlInput.set("");
   }
 
   async function cancelAdd() {
@@ -251,6 +254,18 @@ function createOrgState() {
         error.set("Please enter a My Domain URL");
         return;
       }
+    } else if (mode === "authurl") {
+      const alias = get(aliasInput).trim();
+      if (!alias) {
+        error.set("Please enter an alias");
+        return;
+      }
+
+      const authUrl = get(authUrlInput).trim();
+      if (!authUrl) {
+        error.set("Please enter an Auth URL");
+        return;
+      }
     }
 
     adding.set(true);
@@ -260,6 +275,10 @@ function createOrgState() {
         const url = get(customInstanceUrl).trim();
         const alias = get(aliasInput).trim() || undefined;
         await addOrg("custom", url, alias);
+      } else if (mode === "authurl") {
+        const authUrl = get(authUrlInput).trim();
+        const alias = get(aliasInput).trim() || undefined;
+        await addOrg("authurl", authUrl, alias);
       } else {
         const alias = get(aliasInput).trim() || undefined;
         await addOrg(mode, undefined, alias);
@@ -361,6 +380,7 @@ function createOrgState() {
     addMode,
     aliasInput,
     customInstanceUrl,
+    authUrlInput,
     error,
     hasGroupedOrgs,
     hasScratchOrgs,

@@ -11,6 +11,7 @@
   export let addMode: AddOrgMode | null;
   export let aliasInput: string;
   export let customInstanceUrl: string;
+  export let authUrlInput: string;
   export let adding: boolean;
 
   function handleStartLogin() {
@@ -32,10 +33,28 @@
 
     <AddOrgInputRow
       bind:value={customInstanceUrl}
-      placeholder="My Domain URL (e.g. cmsapps.my.salesforce.com)"
+      placeholder="My Domain URL"
       showButtons={true}
       buttonsInline={false}
       primaryLabel="Start Login"
+      secondaryLabel="Cancel"
+      primaryDisabled={adding}
+      on:primary={handleStartLogin}
+      on:secondary={handleCancel}
+    />
+  {:else if addMode === "authurl"}
+    <AddOrgInputRow
+      bind:value={aliasInput}
+      placeholder="Alias (optional, e.g. cms-auth)"
+      showButtons={false}
+    />
+    <AddOrgInputRow
+      bind:value={authUrlInput}
+      type="url"
+      placeholder="Auth URL"
+      showButtons={true}
+      buttonsInline={false}
+      primaryLabel="Authenticate"
       secondaryLabel="Cancel"
       primaryDisabled={adding}
       on:primary={handleStartLogin}
