@@ -1,19 +1,16 @@
 # Outstanding Tasks
-- Live search should open rows with matches
-    - When you clear live search, rows are collapsed again
-- Hotkeys?
-    - Tab across rows / into search only
-    - Enter to open
-    - Command Backspace to delete
-        - Prompt to verify
+- Rust / Tauri migration
+- Rewrite auth pieces of the CLI only in rust for max mini-ness
 - Settings
     - Display Radio
         - Organize orgs by namespace
         - Organize orgs by when they were last opened
     - Light / Dark / System
-- Rust / Tauri migration
-- Rewrite auth pieces of the CLI only in rust for max mini-ness
-
+- Hotkeys?
+    - Tab across rows / into search only
+    - Enter to open
+    - Command Backspace to delete
+        - Prompt to verify
 
 # Done
 - Error display
@@ -38,3 +35,5 @@
     - Generate Auth URL
     - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort
 - Auth with an auth url
+- Live search should open rows with matches
+    - When you clear live search, rows are collapsed again
