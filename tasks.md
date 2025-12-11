@@ -1,6 +1,9 @@
 # Outstanding Tasks
 - Rust / Tauri migration
 - Rewrite auth pieces of the CLI only in rust for max mini-ness
+- Unit testing
+    - Typescript
+    - Rust
 - Settings
     - Display Radio
         - Organize orgs by namespace
