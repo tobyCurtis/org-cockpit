@@ -74,6 +74,7 @@ function createOrgState() {
   const customInstanceUrl = writable("");
   const authUrlInput = writable("");
   const error = writable<string | null>(null);
+  let lastSearchWasEmpty = true;
 
   const hasGroupedOrgs = derived(groupedOrgs, (value) => Boolean(value.length));
   const hasScratchOrgs = derived(scratchOrgs, (value) => Boolean(value.length));
@@ -213,6 +214,22 @@ function createOrgState() {
     }
     expandedNamespaces.set(next);
   }
+
+  trimmedSearch.subscribe((value) => {
+    const hasQuery = Boolean(value);
+    if (hasQuery) {
+      lastSearchWasEmpty = false;
+      const filtered = get(filteredGroupedOrgs);
+      const next: Record<string, boolean> = { ...get(expandedNamespaces) };
+      for (const g of filtered) {
+        next[g.namespace] = true;
+      }
+      expandedNamespaces.set(next);
+    } else if (!lastSearchWasEmpty) {
+      lastSearchWasEmpty = true;
+      collapseAll();
+    }
+  });
 
   function startAdd(mode: AddOrgMode) {
     error.set(null);

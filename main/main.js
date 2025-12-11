@@ -167,12 +167,8 @@ ipcMain.handle("add-org", async (_event, options) => {
 
     const args = ["org", "login", "web"];
 
-    // If alias provided, use it
-    if (alias) {
-      args.push("--alias", alias);
-    }
-
     let tmpAuthUrlFile = null;
+    let aliasArg = alias ? ["--alias", alias] : [];
 
     if (mode === "sandbox") {
       args.push("--instance-url", "https://test.salesforce.com");
@@ -202,8 +198,15 @@ ipcMain.handle("add-org", async (_event, options) => {
       }
 
       args.splice(0, args.length, "org", "login", "sfdx-url");
+      if (aliasArg.length) {
+        args.push(...aliasArg);
+      }
       args.push("--sfdx-url-file", tmpAuthUrlFile);
       args.push("--no-prompt");
+    } else {
+      if (aliasArg.length) {
+        args.push(...aliasArg);
+      }
     }
 
     if (addOrgProcess) {

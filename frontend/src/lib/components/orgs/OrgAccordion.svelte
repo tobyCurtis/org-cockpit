@@ -78,7 +78,6 @@
 <style>
   .accordion {
     border: 1px solid rgba(0, 0, 0, 0.08);
-    margin-bottom: 0.75rem;
     background: #fff;
     border-radius: 0;
   }

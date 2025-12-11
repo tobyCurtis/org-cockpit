@@ -1,5 +1,4 @@
 # Outstanding Tasks
-- Auth with an auth url
 - Live search should open rows with matches
     - When you clear live search, rows are collapsed again
 - Hotkeys?
@@ -38,3 +37,4 @@
     - ReAuthenticate
     - Generate Auth URL
     - Details view perhaps? I forget what the cli has for that, but I know it's a JSON blob of some sort
+- Auth with an auth url
