@@ -2,61 +2,55 @@
   "name": "org-cockpit",
   "version": "0.1.0",
   "main": "main/main.js",
-
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run electron\"",
-    "electron": "cross-env NODE_ENV=DEV electron main/main.js",
-
+    "electron": "cross-env NODE_ENV=DEV wait-on http://localhost:5173 && electron main/main.js",
     "build:frontend": "npm run build --prefix frontend",
     "build": "npm run build:frontend",
-
     "dist:mac": "npm run build:frontend && electron-builder --mac",
     "dist:win": "npm run build:frontend && electron-builder --win",
     "dist:all": "npm run build:frontend && electron-builder -mwl",
-
     "dist": "npm run dist:all"
   },
-
   "build": {
     "appId": "com.yourname.orgcockpit",
     "productName": "Org Cockpit",
-
     "files": [
       "main/**",
       "frontend/dist/**",
       "package.json"
     ],
-
     "directories": {
       "output": "release"
     },
-
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "main/icon.icns"
     },
-
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     }
   },
-
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
-
   "dependencies": {
     "which": "^3.0.0"
   },
-
   "devDependencies": {
     "concurrently": "^7.6.0",
     "cross-env": "^7.0.3",
     "electron": "^39.2.3",
     "electron-builder": "^26.0.12",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.3"
   }
 }
