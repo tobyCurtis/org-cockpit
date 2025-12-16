@@ -69,6 +69,13 @@ function findSfBinary() {
 }
 
 const SF_BIN = findSfBinary();
+const EXEC_OPTS =
+  process.platform === "win32" && /\.cmd$/i.test(SF_BIN) ? { shell: true } : {};
+
+// Small helper to run sf with consistent options (notably shell:true for .cmd on Windows)
+function runSf(args, cb) {
+  return execFile(SF_BIN, args, EXEC_OPTS, cb);
+}
 
 // Inject sf directory into PATH (cross-platform)
 if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
@@ -109,25 +116,21 @@ const logPrefix = "[add-org]";
 // --------------------------------------------------
 ipcMain.handle("get-orgs", async () => {
   return new Promise((resolve, reject) => {
-    execFile(
-      SF_BIN,
-      ["org", "list", "--json", "--loglevel", "fatal"],
-      (err, stdout, stderr) => {
-        if (err) {
-          console.error("Error running sf org list:", stderr || err);
-          reject(stderr || err.message || "Failed to run sf org list");
-          return;
-        }
-
-        try {
-          const result = parseSfJson(stdout);
-          resolve(result);
-        } catch (parseErr) {
-          console.error("Failed to parse sf org list output:", parseErr);
-          reject("Failed to parse sf org list output");
-        }
+    runSf(["org", "list", "--json", "--loglevel", "fatal"], (err, stdout, stderr) => {
+      if (err) {
+        console.error("Error running sf org list:", stderr || err);
+        reject(stderr || err.message || "Failed to run sf org list");
+        return;
       }
-    );
+
+      try {
+        const result = parseSfJson(stdout);
+        resolve(result);
+      } catch (parseErr) {
+        console.error("Failed to parse sf org list output:", parseErr);
+        reject("Failed to parse sf org list output");
+      }
+    });
   });
 });
 
@@ -138,19 +141,15 @@ ipcMain.handle("open-org", async (_event, target) => {
       return;
     }
 
-    execFile(
-      SF_BIN,
-      ["org", "open", "--target-org", target],
-      (err, stdout, stderr) => {
-        if (err) {
-          console.error("Error running sf org open:", stderr || err);
-          reject(stderr || err.message || "Failed to open org");
-          return;
-        }
-
-        resolve(true);
+    runSf(["org", "open", "--target-org", target], (err, stdout, stderr) => {
+      if (err) {
+        console.error("Error running sf org open:", stderr || err);
+        reject(stderr || err.message || "Failed to open org");
+        return;
       }
-    );
+
+      resolve(true);
+    });
   });
 });
 
@@ -218,7 +217,7 @@ ipcMain.handle("add-org", async (_event, options) => {
       }
     }
 
-    addOrgProcess = execFile(SF_BIN, args, (err, stdout, stderr) => {
+    addOrgProcess = runSf(args, (err, stdout, stderr) => {
       addOrgProcess = null;
       if (tmpAuthUrlFile) {
         fs.rm(tmpAuthUrlFile, { force: true }, () => {});
@@ -280,8 +279,7 @@ ipcMain.handle("generate-auth-url", async (_event, target) => {
       return;
     }
 
-    execFile(
-      SF_BIN,
+    runSf(
       ["org", "display", "--target-org", target, "--verbose", "--json"],
       (err, stdout, stderr) => {
         if (err) {
@@ -322,19 +320,15 @@ ipcMain.handle("delete-org", async (_event, target) => {
       return;
     }
 
-    execFile(
-      SF_BIN,
-      ["org", "logout", "--target-org", target, "--noprompt"],
-      (err, stdout, stderr) => {
-        if (err) {
-          console.error("Error running sf org logout:", stderr || err);
-          reject(stderr || err.message || "Failed to delete org");
-          return;
-        }
-
-        resolve({ success: true });
+    runSf(["org", "logout", "--target-org", target, "--noprompt"], (err, stdout, stderr) => {
+      if (err) {
+        console.error("Error running sf org logout:", stderr || err);
+        reject(stderr || err.message || "Failed to delete org");
+        return;
       }
-    );
+
+      resolve({ success: true });
+    });
   });
 });
 
