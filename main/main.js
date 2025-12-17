@@ -171,6 +171,9 @@ ipcMain.handle("add-org", async (_event, options) => {
 
     if (mode === "sandbox") {
       args.push("--instance-url", "https://test.salesforce.com");
+      if (aliasArg.length) {
+        args.push(...aliasArg);
+      }
     } else if (mode === "custom") {
       if (!instanceUrl) {
         reject("Custom instance URL is required");
@@ -183,6 +186,9 @@ ipcMain.handle("add-org", async (_event, options) => {
       instanceUrl = instanceUrl.replace(/"/g, "");
 
       args.push("--instance-url", instanceUrl);
+      if (aliasArg.length) {
+        args.push(...aliasArg);
+      }
     } else if (mode === "authurl") {
       if (!instanceUrl) {
         reject("Auth URL is required");
