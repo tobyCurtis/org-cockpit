@@ -86,7 +86,7 @@ if (SF_BIN && SF_BIN !== "sf" && SF_BIN !== "sf.exe") {
 }
 
 
-const isDev = process.env.NODE_ENV === "DEV";
+const isDev = !app.isPackaged;
 
 function parseSfJson(raw) {
   if (!raw) throw new Error("Empty sf output");
