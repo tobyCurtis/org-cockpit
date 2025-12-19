@@ -1,4 +1,6 @@
 # Outstanding Tasks
+- Dark / Light mode
+- Details popup
 - Rust / Tauri migration
 - Rewrite auth pieces of the CLI only in rust for max mini-ness
 - Unit testing
@@ -8,13 +10,7 @@
     - Display Radio
         - Organize orgs by namespace
         - Organize orgs by when they were last opened
-    - Light / Dark / System
-- Hotkeys?
-    - Tab across rows / into search only
-    - Enter to open
-    - Command Backspace to delete
-        - Prompt to verify
-
+        
 # Done
 - Error display
 - Live search
