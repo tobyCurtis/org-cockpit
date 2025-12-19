@@ -19,6 +19,11 @@ The app runs on Electron with a Svelte (Vite) frontend and communicates with the
 
 Org Cockpit removes the need to remember aliases or constantly run CLI commands by giving you a unified view of all authorized orgs.
 
+<p align="center">
+  <img src="assets/org-cockpit-demo.gif" alt="Org Cockpit demo" width="900" />
+</p>
+
+
 ---
 
 ## Features
@@ -28,17 +33,17 @@ Org Cockpit removes the need to remember aliases or constantly run CLI commands 
 - Accordion sections showing:
   - Production orgs
   - Sandbox orgs
-  - Scratch orgs (separate section)
+  - Scratch orgs
   - Ungrouped orgs
 - Connection status indicator with green/red dots
-- Shows last used timestamp when available
 - Button to open an org in the browser (`sf org open`)
+- Generating Auth URLs
 - Ability to add orgs with:
   - Production login
   - Sandbox login (test.salesforce.com)
   - Custom domain login (full My Domain URL)
+  - Auth URL
 - Live search filtering by alias or instance URL
-- Built with Electron + Svelte (Vite) + electron-builder
 
 ---
 

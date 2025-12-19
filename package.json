@@ -4,12 +4,14 @@
   "main": "main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run electron\"",
+    "clean": "rimraf frontend/dist release",
     "electron": "cross-env NODE_ENV=DEV sh -c \"wait-on http://localhost:5173 && electron main/main.js\"",
-    "build:frontend": "npm run build --prefix frontend",
+    "build:frontend": "npm run clean:frontend && npm run build --prefix frontend",
+    "clean:frontend": "rimraf frontend/dist",
     "build": "npm run build:frontend",
-    "dist:mac": "npm run build:frontend && electron-builder --mac",
-    "dist:win": "npm run build:frontend && electron-builder --win",
-    "dist:all": "npm run build:frontend && electron-builder -mwl",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:all": "npm run build && electron-builder -mwl",
     "dist": "npm run dist:all"
   },
   "build": {
@@ -51,6 +53,7 @@
     "electron-builder": "^26.0.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "wait-on": "^9.0.3"
+    "wait-on": "^9.0.3",
+    "rimraf": "^6.0.1"
   }
 }
