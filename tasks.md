@@ -9,8 +9,10 @@
 - Settings
     - Display Radio
         - Organize orgs by namespace
-        - Organize orgs by when they were last opened
-        
+        - Organize orgs by when they were last opened        
+- Some kinf of loading state after you click open org while it's waiting to do all of the stuff
+    - Mkae it fun
+
 # Done
 - Error display
 - Live search
